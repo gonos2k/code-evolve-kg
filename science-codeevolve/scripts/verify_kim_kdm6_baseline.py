@@ -23,6 +23,9 @@ import yaml
 SHA256_RE = re.compile(r"^[0-9a-fA-F]{64}$")
 PLACEHOLDER_RE = re.compile(r"(replace-with|placeholder|todo|/path/to|\.\.\.)", re.IGNORECASE)
 MP_PHYSICS_RE = re.compile(r"(?im)^\s*mp_physics\s*=\s*([^!\n/]+)")
+FORBIDDEN_RUN_LOG_RE = re.compile(
+    r"(?im)(\bKDM6AD_PHASE\b|\bmp_physics\s*=\s*137\b|\bmp\s*=\s*137\b)"
+)
 
 
 def _sha256_path(path: Path) -> str:
@@ -187,13 +190,66 @@ def _verify_namelist(namelist_path: Path, run_cfg: Mapping[str, Any]) -> Dict[st
     return {"mp_physics": values}
 
 
+def _read_log(path: Path) -> str:
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+def _verify_no_forbidden_run_log_markers(log_text: str, *, label: str) -> None:
+    match = FORBIDDEN_RUN_LOG_RE.search(log_text)
+    if match is not None:
+        raise ValueError(f"{label} contains forbidden run marker: {match.group(0)!r}")
+
+
 def _verify_success_log(run_log_path: Path, run_cfg: Mapping[str, Any]) -> None:
     success_pattern = str(run_cfg.get("success_pattern") or "wrf: SUCCESS COMPLETE WRF")
-    log_text = run_log_path.read_text(encoding="utf-8", errors="replace")
+    log_text = _read_log(run_log_path)
     if success_pattern not in log_text:
         raise ValueError(f"Run log does not contain success marker: {success_pattern!r}")
-    if "mp_physics=137" in log_text or "KDM6AD_PHASE" in log_text:
-        raise ValueError("Run log contains KDM6AD/mp_physics=137 markers.")
+    _verify_no_forbidden_run_log_markers(log_text, label="Run log")
+
+
+def _verify_diagnostic_logs(
+    *,
+    bundle_root: Path,
+    run_cfg: Mapping[str, Any],
+) -> Dict[str, str]:
+    digests: Dict[str, str] = {}
+    log_entries = run_cfg.get("diagnostic_log_paths", [])
+    if log_entries in (None, ""):
+        return digests
+    if not isinstance(log_entries, list):
+        raise ValueError("run.diagnostic_log_paths must be a list when provided.")
+
+    for index, entry in enumerate(log_entries):
+        if isinstance(entry, str):
+            path_value = entry
+            expected_digest = None
+        elif isinstance(entry, dict):
+            path_value = entry.get("path")
+            expected_digest = entry.get("sha256")
+        else:
+            raise ValueError(f"run.diagnostic_log_paths[{index}] must be a string or mapping.")
+
+        diagnostic_path = _resolve_bundle_file(
+            bundle_root,
+            path_value,
+            label=f"run.diagnostic_log_paths[{index}].path",
+        )
+        assert diagnostic_path is not None
+        relative_path = diagnostic_path.relative_to(bundle_root.resolve()).as_posix()
+        if expected_digest is not None:
+            digests[relative_path] = _verify_digest(
+                diagnostic_path,
+                expected_digest,
+                label=f"run.diagnostic_log_paths[{index}].sha256",
+            )
+        else:
+            digests[relative_path] = _sha256_path(diagnostic_path)
+        _verify_no_forbidden_run_log_markers(
+            _read_log(diagnostic_path),
+            label=f"Diagnostic log {relative_path}",
+        )
+    return digests
 
 
 def verify_kim_kdm6_baseline(
@@ -254,7 +310,7 @@ def verify_kim_kdm6_baseline(
         required=not _is_placeholder(compile_cfg.get("ideal_exe_sha256")),
     )
 
-    artifact_digests: Dict[str, str] = {
+    artifact_digests: Dict[str, Any] = {
         "build_log": _verify_digest(
             build_log_path,
             compile_cfg.get("log_sha256"),
@@ -295,6 +351,9 @@ def verify_kim_kdm6_baseline(
 
     namelist_summary = _verify_namelist(namelist_path, run_cfg)
     _verify_success_log(run_log_path, run_cfg)
+    diagnostic_log_digests = _verify_diagnostic_logs(bundle_root=bundle_root, run_cfg=run_cfg)
+    if diagnostic_log_digests:
+        artifact_digests["diagnostic_logs"] = diagnostic_log_digests
 
     receipt: Dict[str, Any] = {
         "schema_version": 1,

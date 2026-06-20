@@ -49,6 +49,9 @@ full_model_baseline:
       mp_physics: 137
     log_path: "replace-with-bundle-relative-rsl-or-run-log"
     log_sha256: "replace-with-run-log-sha256"
+    diagnostic_log_paths:
+      - path: "replace-with-bundle-relative-rsl-error-log"
+        sha256: "replace-with-rsl-error-log-sha256"
     success_pattern: "wrf: SUCCESS COMPLETE WRF"
     output_path: "replace-with-bundle-relative-wrfout.37.nc"
     output_sha256: "replace-with-wrfout-sha256"

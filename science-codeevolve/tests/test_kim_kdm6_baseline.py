@@ -164,6 +164,67 @@ class TestKimKdm6Baseline:
                 source_root=data["source_root"],
             )
 
+    def test_rejects_spaced_mp137_run_log_marker(self, tmp_path):
+        module = _load_module()
+        data = _make_baseline_tree(tmp_path)
+        manifest = data["manifest"]
+        run_log_path = data["bundle_root"] / "run/rsl.out.0000"
+        digest = _write(
+            run_log_path,
+            "wrf: SUCCESS COMPLETE WRF\n================ mp_physics = 137 ================\n",
+        )
+        manifest["full_model_baseline"]["run"]["log_sha256"] = digest
+        data["manifest_path"].write_text(
+            yaml.safe_dump(manifest, sort_keys=False), encoding="utf-8"
+        )
+
+        with pytest.raises(ValueError, match="forbidden run marker"):
+            module.verify_kim_kdm6_baseline(
+                manifest_path=data["manifest_path"],
+                bundle_root=data["bundle_root"],
+                source_root=data["source_root"],
+            )
+
+    def test_rejects_short_mp137_run_log_marker(self, tmp_path):
+        module = _load_module()
+        data = _make_baseline_tree(tmp_path)
+        manifest = data["manifest"]
+        run_log_path = data["bundle_root"] / "run/rsl.out.0000"
+        digest = _write(run_log_path, "wrf: SUCCESS COMPLETE WRF\n[wrf] mp=137 ...\n")
+        manifest["full_model_baseline"]["run"]["log_sha256"] = digest
+        data["manifest_path"].write_text(
+            yaml.safe_dump(manifest, sort_keys=False), encoding="utf-8"
+        )
+
+        with pytest.raises(ValueError, match="forbidden run marker"):
+            module.verify_kim_kdm6_baseline(
+                manifest_path=data["manifest_path"],
+                bundle_root=data["bundle_root"],
+                source_root=data["source_root"],
+            )
+
+    def test_rejects_diagnostic_log_marker(self, tmp_path):
+        module = _load_module()
+        data = _make_baseline_tree(tmp_path)
+        manifest = data["manifest"]
+        diagnostic_digest = _write(
+            data["bundle_root"] / "run/rsl.error.0000",
+            "KDM6AD_PHASE phy_init top mp_physics=          37\n",
+        )
+        manifest["full_model_baseline"]["run"]["diagnostic_log_paths"] = [
+            {"path": "run/rsl.error.0000", "sha256": diagnostic_digest}
+        ]
+        data["manifest_path"].write_text(
+            yaml.safe_dump(manifest, sort_keys=False), encoding="utf-8"
+        )
+
+        with pytest.raises(ValueError, match="Diagnostic log"):
+            module.verify_kim_kdm6_baseline(
+                manifest_path=data["manifest_path"],
+                bundle_root=data["bundle_root"],
+                source_root=data["source_root"],
+            )
+
     def test_rejects_source_digest_mismatch(self, tmp_path):
         module = _load_module()
         data = _make_baseline_tree(tmp_path)

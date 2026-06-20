@@ -79,6 +79,29 @@ Use `scripts/verify_kim_kdm6_baseline.py` from the `science-codeevolve` root to
 check copied baseline evidence and write a private receipt before defining
 fitness.
 
+## Local Copied Case
+
+Local run cases should be copied under:
+
+```text
+input/local_run_cases/
+```
+
+That directory is Git-ignored except for its README because KIM-meso run bundles
+contain host-specific executables, NetCDF outputs, and private diagnostic logs.
+The prepared local smoke bundle is:
+
+```text
+input/local_run_cases/mp37_quarter_ss/
+```
+
+It is copied from `/Users/yhlee/KDM6AD/KIM-meso_v1.0` and can be launched from
+its `run/` directory with `mpirun -np 1 ./wrf.exe`. The copied host executable
+currently carries KDM6AD/LibTorch link and diagnostic artifacts, so a successful
+smoke run is not yet a valid Fortran-only baseline receipt. For fitness design,
+rerun this case from a clean Fortran KDM6 build and configure both `rsl.out.0000`
+and `rsl.error.0000` in the evidence manifest.
+
 ## KG Context
 
 Use CodeEvolve file-based KG context, not generic KG runtime dependencies. The
