@@ -1,0 +1,4 @@
+interface:
+  display_name: "CodeEvolve KG"
+  short_description: "CodeEvolve KG and Graphify workflow"
+  default_prompt: "Use $code-evolve-kg to review and implement CodeEvolve KG/Graphify integration changes."
