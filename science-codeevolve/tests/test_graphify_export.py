@@ -75,6 +75,22 @@ class TestEvolvedCodeGraphExporter:
         assert exporter.root == tmp_path / "graphify-evolve-corpus"
         assert exporter.knowledge_context_paths == ["wiki/overview.md"]
 
+    def test_rejects_absolute_knowledge_links(self, tmp_path: Path):
+        """Tests that public Graphify KG links cannot expose local paths."""
+        private_page: Path = tmp_path / "private" / "kg-secret-case.md"
+
+        with pytest.raises(ValueError, match="knowledge_links"):
+            EvolvedCodeGraphExporter(
+                root=tmp_path / "corpus",
+                knowledge_links=[str(private_page)],
+            )
+
+        with pytest.raises(ValueError, match="knowledge_links"):
+            EvolvedCodeGraphExporter(
+                root=tmp_path / "corpus",
+                knowledge_links=[f"[secret]({private_page})"],
+            )
+
     def test_exports_code_metadata_manifest_and_bridge(self, tmp_path: Path):
         """Tests that a program export writes code, metadata, manifest, and KG bridge."""
         exporter = EvolvedCodeGraphExporter(
@@ -331,7 +347,8 @@ class TestEvolvedCodeGraphExporter:
         assert metadata["evidence_manifest_sha256"] == "manifest-sha"
         assert metadata["wrf_commit"] == "abcdef123456"
         assert metadata["wrf_target"]["scheme_module"] == "phys/module_mp_thompson.F"
-        assert metadata["wrf_target"]["wrf_source_root"].startswith("<absolute-path-redacted:")
+        assert metadata["wrf_target"]["wrf_source_root"] == "<absolute-path-redacted>"
+        assert "WRFV4.7.0" not in metadata_text
         assert metadata["kg_decision_ids"] == ["require-kg-interaction-for-wrf-physics-changes"]
         assert metadata["required_decision_concept_ids"] == [concept_id]
         assert metadata["fixture_summary"]["holdout_cases"] == 1

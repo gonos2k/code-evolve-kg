@@ -134,6 +134,10 @@ GRAPHIFY_EXPORT:
     - "[[standalone-physics-boundary-fixture]]"
 ```
 
+`knowledge_links` are public Graphify bridge links. Use wiki links, bundle-relative
+Markdown links, or `http(s)` URLs; do not put local absolute paths or private
+fixture/source paths in this field.
+
 After or during a run, inspect the evolved-code corpus separately:
 
 For queryable KG-code links from candidate cards, metadata, and the bridge file:
@@ -147,3 +151,8 @@ For a structural refresh after pure code changes:
 ```bash
 graphify update /path/to/run/graphify-evolve-corpus
 ```
+
+The full `knowledge_gate/receipt.json` under a run output is a private runtime
+receipt. It can contain local source, fixture, manifest, and context paths for
+auditability. Publish the Graphify corpus metadata and receipt SHA/reference, not
+the full run output or private receipt, unless the paths have been reviewed.

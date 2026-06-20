@@ -17,7 +17,7 @@ import os
 import re
 from dataclasses import dataclass, field
 from numbers import Real
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Dict, List, Optional, Set
 from uuid import uuid4
 
@@ -33,6 +33,13 @@ from codeevolve.utils.knowledge_use import (
 )
 
 FINITE_NUMERIC_PENALTY: float = 1.0e30
+_LINK_SCHEME_RE = re.compile(r"^([A-Za-z][A-Za-z0-9+.-]*):")
+_MARKDOWN_LINK_TARGET_RE = re.compile(r"\[[^\]\n]+\]\(([^)\n]+)\)")
+_LOCAL_ABSOLUTE_FRAGMENT_RE = re.compile(
+    r"(^|[\s\[\(<'\"`])(?:~[\\/]|"
+    r"/(?:Users|home|private|var|tmp|opt|Volumes|mnt|etc|root)[\\/]|"
+    r"[A-Za-z]:[\\/])"
+)
 
 
 def _as_bool(value: Any, default: bool) -> bool:
@@ -141,6 +148,69 @@ def _looks_like_absolute_path(value: str) -> bool:
     return re.match(r"^[A-Za-z]:[\\/]", value) is not None
 
 
+def _graphify_label(key: str) -> str:
+    """Formats a configuration key for Graphify error messages."""
+    if key.startswith("GRAPHIFY_EXPORT."):
+        return key
+    return f"GRAPHIFY_EXPORT.{key}"
+
+
+def _validate_public_link_target(target: str, *, label: str) -> None:
+    """Validates that a Markdown/link target is public and bundle-relative."""
+    text: str = target.strip()
+    if not text:
+        raise ValueError(f"{label} must not contain an empty link target.")
+    if "\n" in text or "\r" in text:
+        raise ValueError(f"{label} must be a single-line public KG/wiki link.")
+    scheme_match = _LINK_SCHEME_RE.match(text)
+    if scheme_match is not None:
+        scheme: str = scheme_match.group(1).lower()
+        if scheme in {"http", "https"}:
+            return
+        raise ValueError(f"{label} must not use local or unsupported URI schemes.")
+    if _looks_like_absolute_path(text) or text.startswith("~"):
+        raise ValueError(f"{label} must not contain absolute local paths.")
+
+    path_text: str = text.split("#", 1)[0].split("?", 1)[0].replace("\\", "/")
+    if path_text.startswith("//"):
+        raise ValueError(f"{label} must not use protocol-relative URLs.")
+    if path_text and PurePosixPath(path_text).is_absolute():
+        raise ValueError(f"{label} must use bundle-relative KG/wiki paths.")
+    if ".." in PurePosixPath(path_text).parts:
+        raise ValueError(f"{label} must not traverse outside the KG/wiki bundle.")
+
+
+def _validate_public_knowledge_link(link: str, *, label: str) -> str:
+    """Returns a normalized public KG/wiki link or raises on private paths."""
+    text: str = link.strip()
+    if not text:
+        raise ValueError(f"{label} must not contain empty links.")
+    if "\n" in text or "\r" in text:
+        raise ValueError(f"{label} links must be single-line values.")
+    if _LOCAL_ABSOLUTE_FRAGMENT_RE.search(text):
+        raise ValueError(f"{label} must not contain absolute local paths.")
+
+    if text.startswith("[[") and text.endswith("]]"):
+        wiki_target: str = text[2:-2].strip()
+        _validate_public_link_target(wiki_target, label=label)
+        return text
+
+    markdown_targets: List[str] = _MARKDOWN_LINK_TARGET_RE.findall(text)
+    if markdown_targets:
+        for target in markdown_targets:
+            _validate_public_link_target(target, label=label)
+        return text
+
+    _validate_public_link_target(text, label=label)
+    return text
+
+
+def validate_public_knowledge_links(links: List[str], *, key: str = "knowledge_links") -> List[str]:
+    """Validates Graphify KG links before they are exported publicly."""
+    label: str = _graphify_label(key)
+    return [_validate_public_knowledge_link(link, label=label) for link in links]
+
+
 def _public_receipt_value(value: Any) -> Any:
     """Returns a Graphify-safe receipt value without local absolute paths."""
     if isinstance(value, dict):
@@ -156,8 +226,7 @@ def _public_receipt_value(value: Any) -> Any:
     if isinstance(value, tuple):
         return [_public_receipt_value(item) for item in value]
     if isinstance(value, str) and _looks_like_absolute_path(value):
-        basename: str = Path(value).name or "path"
-        return f"<absolute-path-redacted:{basename}>"
+        return "<absolute-path-redacted>"
     return value
 
 
@@ -463,6 +532,10 @@ class EvolvedCodeGraphExporter:
     knowledge_gate_receipt_path: Optional[str] = None
     knowledge_gate_receipt_sha256: Optional[str] = None
 
+    def __post_init__(self) -> None:
+        """Normalizes public Graphify KG links at construction time."""
+        self.knowledge_links = validate_public_knowledge_links(self.knowledge_links)
+
     @classmethod
     def from_config(
         cls,
@@ -656,6 +729,7 @@ class EvolvedCodeGraphExporter:
         public_knowledge_context_paths: List[str] = _public_receipt_value(
             self.knowledge_context_paths
         )
+        public_knowledge_links: List[str] = validate_public_knowledge_links(self.knowledge_links)
 
         return _json_safe(
             {
@@ -690,7 +764,7 @@ class EvolvedCodeGraphExporter:
                 "diff_path": (
                     str(diff_path.relative_to(self.root)) if diff_path is not None else None
                 ),
-                "knowledge_links": self.knowledge_links,
+                "knowledge_links": public_knowledge_links,
                 "knowledge_context_paths": public_knowledge_context_paths,
                 "knowledge_gate": public_knowledge_gate,
                 "knowledge_gate_receipt_path": _public_receipt_value(
@@ -770,6 +844,7 @@ class EvolvedCodeGraphExporter:
         public_knowledge_context_paths: List[str] = _public_receipt_value(
             self.knowledge_context_paths
         )
+        public_knowledge_links: List[str] = validate_public_knowledge_links(self.knowledge_links)
 
         lines: List[str] = [
             "---",
@@ -786,9 +861,9 @@ class EvolvedCodeGraphExporter:
             f"candidate_card_path: {_yaml_string(relative_card)}",
             f"diff_path: {_yaml_string(relative_diff) if relative_diff is not None else 'null'}",
         ]
-        if self.knowledge_links:
+        if public_knowledge_links:
             lines.append("knowledge_links:")
-            lines.extend(f"  - {_yaml_string(link)}" for link in self.knowledge_links)
+            lines.extend(f"  - {_yaml_string(link)}" for link in public_knowledge_links)
         else:
             lines.append("knowledge_links: []")
         if public_knowledge_context_paths:
@@ -850,8 +925,8 @@ class EvolvedCodeGraphExporter:
                 "",
             ]
         )
-        if self.knowledge_links:
-            lines.extend(f"- {link}" for link in self.knowledge_links)
+        if public_knowledge_links:
+            lines.extend(f"- {link}" for link in public_knowledge_links)
         else:
             lines.append("- (none configured)")
         lines.extend(["", "## Knowledge Context Paths", ""])
@@ -933,6 +1008,7 @@ class EvolvedCodeGraphExporter:
         public_knowledge_context_paths: List[str] = _public_receipt_value(
             self.knowledge_context_paths
         )
+        public_knowledge_links: List[str] = validate_public_knowledge_links(self.knowledge_links)
         lines: List[str] = [
             "# Knowledge Bridge",
             "",
@@ -942,8 +1018,8 @@ class EvolvedCodeGraphExporter:
             "## KG Links",
             "",
         ]
-        if self.knowledge_links:
-            lines.extend(f"- {link}" for link in self.knowledge_links)
+        if public_knowledge_links:
+            lines.extend(f"- {link}" for link in public_knowledge_links)
         else:
             lines.append("- (none configured)")
         lines.extend(["", "## Knowledge Context Paths", ""])

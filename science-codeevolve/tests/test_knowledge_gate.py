@@ -301,6 +301,17 @@ class TestKnowledgeGate:
         with pytest.raises(ValueError, match="GRAPHIFY_EXPORT"):
             run_knowledge_gate(config, {"out_dir": tmp_path / "out"}, [tmp_path])
 
+    def test_graphify_knowledge_links_reject_local_paths(self, tmp_path: Path):
+        """Tests that WRF gate Graphify links cannot expose local paths."""
+        manifest_path: Path = _write_manifest(tmp_path, _make_valid_manifest(tmp_path))
+        config: Dict[str, Any] = _make_config(manifest_path)
+        config["GRAPHIFY_EXPORT"]["knowledge_links"] = [
+            f"[secret]({tmp_path / 'private' / 'kg-secret-case.md'})"
+        ]
+
+        with pytest.raises(ValueError, match="absolute local paths"):
+            run_knowledge_gate(config, {"out_dir": tmp_path / "out"}, [tmp_path])
+
     def test_missing_holdout_fixture_raises(self, tmp_path: Path):
         """Tests that WRF gates require train and holdout fixture separation."""
         manifest: Dict[str, Any] = _make_valid_manifest(tmp_path)

@@ -22,6 +22,7 @@ import yaml
 
 from codeevolve.prompt.knowledge import okf_concept_id_from_source, validate_okf_document
 from codeevolve.utils.constants import DEFAULT_EVOLVE_END_MARKER, DEFAULT_EVOLVE_START_MARKER
+from codeevolve.utils.graphify_export import validate_public_knowledge_links
 from codeevolve.utils.knowledge_use import (
     declared_okf_concept_use,
     declared_usage_traceability_rejection,
@@ -567,6 +568,7 @@ def _validate_graphify_export_config(config: Dict[str, Any]) -> None:
     )
     if not knowledge_links:
         raise ValueError("KNOWLEDGE_GATE requires GRAPHIFY_EXPORT.knowledge_links.")
+    validate_public_knowledge_links(knowledge_links, key="GRAPHIFY_EXPORT.knowledge_links")
 
 
 def _exposed_okf_decision_concepts_by_id(

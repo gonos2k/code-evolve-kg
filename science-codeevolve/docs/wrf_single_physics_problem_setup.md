@@ -230,6 +230,10 @@ GRAPHIFY_EXPORT:
     - "[[standalone-physics-boundary-fixture]]"
 ```
 
+`knowledge_links` are public Graphify bridge links. Use wiki links,
+bundle-relative Markdown links, or `http(s)` URLs; do not put local absolute
+paths or private fixture/source paths in this field.
+
 The export writes:
 
 ```text
@@ -248,6 +252,11 @@ Graphify owns this evolved-code corpus. KG owns the domain pages referenced in
 `knowledge_bridge.md`, each candidate Markdown card, and each metadata sidecar.
 This creates a knowledge+code link without turning generated code into wiki
 content.
+
+The full `knowledge_gate/receipt.json` under a run output is a private runtime
+receipt. It can contain local source, fixture, manifest, and context paths for
+auditability. Publish the Graphify corpus metadata and receipt SHA/reference,
+not the full run output or private receipt, unless the paths have been reviewed.
 
 When KG links, candidate cards, or metadata change, run semantic Graphify
 extraction on the evolved-code corpus:
