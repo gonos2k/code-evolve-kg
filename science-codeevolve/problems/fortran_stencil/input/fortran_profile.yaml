@@ -1,0 +1,28 @@
+FORTRAN_PROFILE:
+  compiler: gfortran
+  standard: f2018
+
+  candidate_form: free
+  candidate_preprocess: false
+  openmp: false
+
+  compile_timeout_s: 30
+  run_timeout_s: 12
+
+  debug_flags:
+    - -O0
+    - -fcheck=all
+    - -fbacktrace
+    - -ffpe-trap=invalid,zero,overflow
+    - -Wall
+    - -Wextra
+    - -Wimplicit-interface
+
+  release_flags:
+    - -O3
+    - -fno-unsafe-math-optimizations
+
+  runtime_env:
+    OMP_NUM_THREADS: "1"
+    OPENBLAS_NUM_THREADS: "1"
+    MKL_NUM_THREADS: "1"

@@ -1,0 +1,67 @@
+SEED: 42
+
+SYS_MSG: |
+  # PROMPT-BLOCK-START
+  You are optimizing a modern Fortran numerical kernel.
+
+  Requirements:
+  - Modify only the ! EVOLVE-BLOCK.
+  - Preserve module name candidate_kernel.
+  - Preserve procedure signature kernel(n, x, y).
+  - Produce standard-conforming Fortran 2018.
+  - Declare every variable explicitly.
+  - Preserve real(real64) numerical semantics.
+  - Do not use file I/O, execute_command_line, environment access,
+    C interoperability, OpenMP, or external libraries.
+  - Correctness is a hard gate.
+  - fitness = reference_time_s / candidate_time_s.
+  - Compile time is not part of fitness.
+  # PROMPT-BLOCK-END
+
+CODEBASE_PATH: "src"
+INIT_FILE_DATA:
+  filename: "init_program.f90"
+  language: "fortran"
+EVAL_FILE_NAME: "evaluate.py"
+
+BUDGET_CONFIG:
+  eval_timeout: 90
+  max_mem_bytes: 1000000000
+  resource_check_interval_s: 0.1
+  num_cpus_per_eval: 1
+
+EVOLVE_CONFIG:
+  fitness_key: "fitness"
+  num_epochs: 100
+  num_islands: 2
+  init_pop: 8
+  max_size: 50
+  selection:
+    policy: "roulette"
+    kwargs:
+      roulette_by_rank: true
+  exploration_rate: 0.25
+  num_inspirations: 2
+  max_chat_depth: 4
+  migration:
+    topology: "ring"
+    interval: 20
+    rate: 0.1
+  markers:
+    evolve_start_marker: "! EVOLVE-BLOCK-START"
+    evolve_end_marker: "! EVOLVE-BLOCK-END"
+    mp_start_marker: "# PROMPT-BLOCK-START"
+    mp_end_marker: "# PROMPT-BLOCK-END"
+  use_map_elites: false
+  meta_prompting: true
+  ckpt: 10
+  early_stopping_rounds: 30
+
+EXPLORATION_ENSEMBLE:
+  - model_name: "MOCK"
+
+EXPLOITATION_ENSEMBLE:
+  - model_name: "MOCK"
+
+SAMPLER_AUX_LM:
+  model_name: "MOCK"

@@ -1,0 +1,2 @@
+[console_scripts]
+codeevolve = codeevolve.cli:main

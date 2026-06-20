@@ -1,0 +1,63 @@
+schema_version: 1
+
+target:
+  wrf_version: "v4.8.0"
+  wrf_commit: "replace-with-exact-git-sha"
+  wrf_source_root: "/path/to/WRF"
+  physics_family: "microphysics"
+  namelist_option: "mp_physics"
+  namelist_value: 8
+  scheme_module: "phys/module_mp_thompson.F"
+  driver_module: "phys/module_microphysics_driver.F"
+  entrypoint: "target_scheme_subroutine"
+
+sources:
+  - id: "wrf-users-guide-physics"
+    kind: "official_doc"
+    url: "https://www2.mmm.ucar.edu/wrf/users/wrf_users_guide/build/html/physics.html"
+    retrieved_at: "2026-06-20"
+    claims:
+      - "Microphysics provides heat, moisture, and resolved-scale precipitation tendencies."
+
+  - id: "wrf-microphysics-driver"
+    kind: "raw_wrf_code"
+    repo: "https://github.com/wrf-model/WRF"
+    commit: "replace-with-exact-git-sha"
+    path: "phys/module_microphysics_driver.F"
+
+  - id: "wrf-target-scheme"
+    kind: "raw_wrf_code"
+    repo: "https://github.com/wrf-model/WRF"
+    commit: "replace-with-exact-git-sha"
+    path: "phys/module_mp_thompson.F"
+
+  - id: "target-scheme-reference-paper"
+    kind: "literature"
+    doi: "replace-with-doi-or-remove-doi-and-use-citation"
+    citation: "replace with source-backed scheme citation"
+
+  - id: "similar-scheme-implementation"
+    kind: "similar_code"
+    repo: "https://github.com/example/wrf-or-physics-fork"
+    commit: "replace-with-exact-git-sha"
+    path: "phys/module_mp_thompson.F"
+    local_path: "input/evidence/similar/module_mp_thompson.F"
+    sha256: "replace-with-64-character-source-digest"
+
+kg:
+  context_paths:
+    - "wiki/decisions/require-kg-interaction-for-wrf-physics-changes.md"
+    - "wiki/concepts/wrf-single-physics-optimization.md"
+    - "wiki/concepts/standalone-physics-boundary-fixture.md"
+  required_decisions:
+    - "require-kg-interaction-for-wrf-physics-changes"
+
+fixtures:
+  train:
+    - name: "case_train_0001"
+      path: "input/fixtures/train/case_0001.npz"
+  holdout:
+    - name: "case_holdout_0001"
+      path: "input/fixtures/holdout/case_0001.npz"
+  private_holdout:
+    cases: []

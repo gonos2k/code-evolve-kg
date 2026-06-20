@@ -1,0 +1,4 @@
+{
+  "problems/eoh-problems/fssp_gls/test_evaluate.py": true,
+  "problems/eoh-problems/tsp_gls/test_evaluate.py": true
+}

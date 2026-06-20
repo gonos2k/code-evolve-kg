@@ -1,0 +1,37 @@
+WRF_TARGET:
+  wrf_version: "v4.x.y-or-exact-commit"
+  wrf_source_root: "/path/to/WRF"
+  physics_family: "microphysics"
+  namelist_option: "mp_physics"
+  namelist_value: 8
+  scheme_module: "phys/module_mp_thompson.F"
+  driver_module: "phys/module_microphysics_driver.F"
+  entrypoint: "target_scheme_subroutine"
+  candidate_language: "fortran_preprocessed"
+  allowed_edit_scope: "single EVOLVE block inside candidate wrapper"
+
+BOUNDARY_FIXTURES:
+  source_run_dir: "/path/to/short_wrf_run"
+  train:
+    - name: "case_0001"
+      path: "input/fixtures/train/case_0001.npz"
+  holdout:
+    - name: "case_0002"
+      path: "input/fixtures/holdout/case_0002.npz"
+  private_holdout:
+    root: "/path/to/private/fixtures"
+    cases: []
+
+VALIDATION:
+  max_abs_error: 1.0e-12
+  max_rel_error: 1.0e-12
+  host_smoke_steps: 3
+  host_smoke_fields:
+    - "T"
+    - "QVAPOR"
+    - "QCLOUD"
+    - "QRAIN"
+
+FITNESS:
+  key: "fitness"
+  definition: "reference_time_s / candidate_time_s after standalone parity passes"
