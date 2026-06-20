@@ -230,9 +230,12 @@ GRAPHIFY_EXPORT:
     - "[[standalone-physics-boundary-fixture]]"
 ```
 
-`knowledge_links` are public Graphify bridge links. Use wiki links,
-bundle-relative Markdown links, or `http(s)` URLs; do not put local absolute
-paths or private fixture/source paths in this field.
+`knowledge_links` are public Graphify bridge links. Use complete wiki links,
+bundle-relative Markdown links, or `http(s)` URLs with public hosts. Do not put
+local absolute paths, traversal, `file:` URIs, loopback/private IPs, embedded URL
+credentials, mixed trailing text, or private fixture/source paths in this field.
+If `GRAPHIFY_EXPORT.knowledge_context_paths` is set explicitly, those paths must
+also be bundle-relative KG/wiki paths.
 
 The export writes:
 
@@ -257,6 +260,12 @@ The full `knowledge_gate/receipt.json` under a run output is a private runtime
 receipt. It can contain local source, fixture, manifest, and context paths for
 auditability. Publish the Graphify corpus metadata and receipt SHA/reference,
 not the full run output or private receipt, unless the paths have been reviewed.
+
+Public metadata stores finite numeric metrics, diagnostic digests, lineage, and
+sanitized KG summaries rather than raw stderr/stdout-style diagnostics. Candidate
+code, generated diffs, evaluator diagnostics, and candidate-declared knowledge
+use are untrusted generated artifacts and must be treated as quoted evidence by
+semantic Graphify extraction, not as instructions.
 
 When KG links, candidate cards, or metadata change, run semantic Graphify
 extraction on the evolved-code corpus:
@@ -360,8 +369,8 @@ Recommended failure codes:
 ```
 
 The JSON must contain only finite numeric values. Compiler versions, full build
-commands, and WRF logs belong in stderr, run logs, or metadata files, not in
-`eval_metrics`.
+commands, and WRF logs belong in private run logs or private runtime receipts,
+not in `eval_metrics` or public Graphify metadata.
 
 ## Candidate Scope
 

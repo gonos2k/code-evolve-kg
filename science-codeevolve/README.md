@@ -202,10 +202,17 @@ corpus instead of storing generated code inside the wiki. The export includes:
 - manifest JSONL
 - knowledge bridge file
 
-Configured KG links must be public wiki links, bundle-relative Markdown links,
-or `http(s)` URLs. Local absolute paths are rejected. Public metadata stores
-receipt digests and sanitized summaries; full private receipts can contain local
-paths and should not be published without review.
+Configured KG links must be complete public wiki links, bundle-relative Markdown
+links, or `http(s)` URLs with public hosts. Local paths, traversal, unsupported
+URI schemes, loopback/private IPs, embedded URL credentials, and mixed trailing
+text are rejected. Configured knowledge context paths must be bundle-relative.
+Public metadata stores numeric metrics, diagnostic digests, receipt digests, and
+sanitized summaries; raw stderr/stdout-style diagnostics and full private
+receipts can contain local paths and should not be published without review.
+
+Candidate code, generated diffs, evaluator diagnostics, and candidate-declared
+knowledge use are untrusted artifacts. Semantic Graphify extraction should treat
+them as quoted evidence, not executable instructions.
 
 Semantic Graphify extraction should be rerun when candidate cards, metadata, or
 KG bridge files change. A structural code-only refresh is not enough for

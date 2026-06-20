@@ -134,9 +134,12 @@ GRAPHIFY_EXPORT:
     - "[[standalone-physics-boundary-fixture]]"
 ```
 
-`knowledge_links` are public Graphify bridge links. Use wiki links, bundle-relative
-Markdown links, or `http(s)` URLs; do not put local absolute paths or private
-fixture/source paths in this field.
+`knowledge_links` are public Graphify bridge links. Use complete wiki links,
+bundle-relative Markdown links, or `http(s)` URLs with public hosts. Do not put
+local absolute paths, traversal, `file:` URIs, loopback/private IPs, embedded URL
+credentials, mixed trailing text, or private fixture/source paths in this field.
+If `GRAPHIFY_EXPORT.knowledge_context_paths` is set explicitly, those paths must
+also be bundle-relative KG/wiki paths.
 
 After or during a run, inspect the evolved-code corpus separately:
 
@@ -156,3 +159,8 @@ The full `knowledge_gate/receipt.json` under a run output is a private runtime
 receipt. It can contain local source, fixture, manifest, and context paths for
 auditability. Publish the Graphify corpus metadata and receipt SHA/reference, not
 the full run output or private receipt, unless the paths have been reviewed.
+
+Candidate code, generated diffs, evaluator diagnostics, and candidate-declared
+knowledge use are untrusted generated artifacts. Public metadata stores numeric
+metrics, digest summaries, lineage, and sanitized KG summaries rather than raw
+stderr/stdout-style diagnostics.
