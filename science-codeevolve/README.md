@@ -102,7 +102,7 @@ Core requirements:
 Fortran requirements:
 
 - GNU Fortran (`gfortran`) is needed only for the Fortran integration tests and
-  Fortran examples.
+  Fortran examples. The core test command below excludes those tests.
 
 Install development dependencies from the lockfile:
 
@@ -112,10 +112,10 @@ python -m pip install "uv==0.9.7"
 uv sync --locked --extra dev
 ```
 
-Run the main test suite:
+Run the core test suite:
 
 ```bash
-uv run --no-sync pytest tests/ -q
+uv run --no-sync pytest tests/ --ignore=tests/fortran -q
 ```
 
 Run the Fortran integration tests:
