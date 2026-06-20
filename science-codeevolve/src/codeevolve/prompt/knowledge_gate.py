@@ -16,6 +16,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterable, List, Optional, Set
+from urllib.parse import urlparse
 
 import yaml
 
@@ -50,6 +51,7 @@ _PLACEHOLDER_RE = re.compile(
 )
 _GIT_SHA_RE = re.compile(r"[0-9a-fA-F]{7,40}")
 _SHA256_RE = re.compile(r"[0-9a-fA-F]{64}")
+_DOI_RE = re.compile(r"^10\.\d{4,9}/\S+$", re.IGNORECASE)
 DEFAULT_WRF_FORBIDDEN_PATTERNS: Dict[str, str] = {
     "execute_command_line": r"\bexecute_command_line\b",
     "get_environment_variable": r"\bget_environment_variable\b",
@@ -144,6 +146,23 @@ def _validate_git_sha(value: Any, *, label: str) -> str:
     if _is_placeholder(commit) or _GIT_SHA_RE.fullmatch(commit) is None:
         raise ValueError(f"{label} must be an exact git SHA.")
     return commit
+
+
+def _validate_http_url(value: Any, *, label: str) -> str:
+    """Validates source URL syntax without performing a network request."""
+    url: str = str(value or "").strip()
+    parsed = urlparse(url)
+    if _is_placeholder(url) or parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise ValueError(f"{label} must be an http(s) URL.")
+    return url
+
+
+def _validate_doi(value: Any, *, label: str) -> str:
+    """Validates DOI syntax without resolving DOI metadata."""
+    doi: str = str(value or "").strip()
+    if _is_placeholder(doi) or _DOI_RE.fullmatch(doi) is None:
+        raise ValueError(f"{label} must look like a DOI, e.g. 10.1234/example.")
+    return doi
 
 
 def _json_bytes(data: Dict[str, Any]) -> bytes:
@@ -410,11 +429,22 @@ def _validate_sources(
         elif kind == "official_docs":
             if _is_placeholder(source.get("url")):
                 raise ValueError(f"KNOWLEDGE_GATE official doc {source['id']!r} needs url.")
+            receipt["url"] = _validate_http_url(
+                source.get("url"),
+                label=f"KNOWLEDGE_GATE official doc {source['id']!r} url",
+            )
         elif kind == "literature":
             if _is_placeholder(source.get("doi")) and _is_placeholder(source.get("citation")):
                 raise ValueError(
                     f"KNOWLEDGE_GATE literature source {source['id']!r} needs DOI or citation."
                 )
+            if not _is_placeholder(source.get("doi")):
+                receipt["doi"] = _validate_doi(
+                    source.get("doi"),
+                    label=f"KNOWLEDGE_GATE literature source {source['id']!r} doi",
+                )
+            if not _is_placeholder(source.get("citation")):
+                receipt["citation"] = str(source["citation"])
         source_receipts.append(receipt)
 
     required_raw_paths: Set[str] = {

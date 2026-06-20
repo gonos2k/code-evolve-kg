@@ -250,6 +250,28 @@ class TestKnowledgeGate:
                 _make_config(manifest_path), {"out_dir": tmp_path / "out"}, [tmp_path]
             )
 
+    def test_official_doc_url_must_be_http(self, tmp_path: Path):
+        """Tests that official documentation sources need auditable http(s) URLs."""
+        manifest: Dict[str, Any] = _make_valid_manifest(tmp_path)
+        manifest["sources"][0]["url"] = "file:///private/docs/physics.html"
+        manifest_path: Path = _write_manifest(tmp_path, manifest)
+
+        with pytest.raises(ValueError, match="official doc .* url"):
+            run_knowledge_gate(
+                _make_config(manifest_path), {"out_dir": tmp_path / "out"}, [tmp_path]
+            )
+
+    def test_literature_doi_must_have_doi_shape(self, tmp_path: Path):
+        """Tests that DOI locators are syntax-checked without network resolution."""
+        manifest: Dict[str, Any] = _make_valid_manifest(tmp_path)
+        manifest["sources"][3]["doi"] = "not-a-doi"
+        manifest_path: Path = _write_manifest(tmp_path, manifest)
+
+        with pytest.raises(ValueError, match="literature source .* doi"):
+            run_knowledge_gate(
+                _make_config(manifest_path), {"out_dir": tmp_path / "out"}, [tmp_path]
+            )
+
     def test_placeholder_target_raises(self, tmp_path: Path):
         """Tests that exact WRF target placeholders are rejected."""
         manifest: Dict[str, Any] = _make_valid_manifest(tmp_path)

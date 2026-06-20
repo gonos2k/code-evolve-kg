@@ -220,6 +220,7 @@ class TestEvolvedCodeGraphExporter:
             "manifest_sha256": "manifest-sha",
             "wrf_target": {
                 "wrf_commit": "abcdef123456",
+                "wrf_source_root": str(tmp_path / "WRFV4.7.0"),
                 "physics_family": "microphysics",
                 "scheme_module": "phys/module_mp_thompson.F",
             },
@@ -231,7 +232,30 @@ class TestEvolvedCodeGraphExporter:
             "required_decision_concepts_by_id": {
                 "require-kg-interaction-for-wrf-physics-changes": [concept_id]
             },
-            "fixture_summary": {"train_cases": 1, "holdout_cases": 1},
+            "fixture_summary": {
+                "train_cases": 1,
+                "holdout_cases": 1,
+                "traceable_train_fixture_names": ["case_train_0001"],
+                "fixture_receipts_sha256": "fixture-sha",
+                "cases": {
+                    "train": [
+                        {
+                            "name": "case_train_0001",
+                            "path": "fixtures/train/case.nc",
+                            "resolved_path": str(tmp_path / "fixtures" / "train" / "case.nc"),
+                            "sha256": "train-sha",
+                        }
+                    ],
+                    "holdout": [
+                        {
+                            "name": "case_holdout_0001",
+                            "path": "fixtures/holdout/case.nc",
+                            "resolved_path": str(tmp_path / "fixtures" / "holdout" / "case.nc"),
+                            "sha256": "holdout-sha",
+                        }
+                    ],
+                },
+            },
             "okf_bundle_root": "wiki",
             "knowledge_context_sha256": "context-sha",
             "knowledge_context_receipts": [
@@ -244,11 +268,25 @@ class TestEvolvedCodeGraphExporter:
                     "okf_title": "Require KG Interaction",
                     "sha256": "source-sha",
                     "chars": 12,
+                    "resolved_path": str(
+                        tmp_path
+                        / "wiki"
+                        / "decisions"
+                        / "require-kg-interaction-for-wrf-physics-changes.md"
+                    ),
                 }
             ],
         }
         exporter = EvolvedCodeGraphExporter(
             root=tmp_path / "corpus",
+            knowledge_context_paths=[
+                str(
+                    tmp_path
+                    / "wiki"
+                    / "decisions"
+                    / "require-kg-interaction-for-wrf-physics-changes.md"
+                )
+            ],
             knowledge_gate_receipt=gate_receipt,
             knowledge_gate_receipt_path=str(tmp_path / "knowledge_gate" / "receipt.json"),
             knowledge_gate_receipt_sha256="receipt-sha",
@@ -282,16 +320,25 @@ class TestEvolvedCodeGraphExporter:
 
         assert record is not None
         metadata = json.loads(record.metadata_path.read_text(encoding="utf-8"))
+        metadata_text = json.dumps(metadata, sort_keys=True)
+        card_text = record.candidate_path.read_text(encoding="utf-8")
+        assert str(tmp_path) not in metadata_text
+        assert str(tmp_path) not in card_text
         assert metadata["knowledge_gate"]["domain"] == "wrf_single_physics"
+        assert metadata["knowledge_gate"]["receipt_sha256"] == "receipt-sha"
+        assert "resolved_path" not in metadata_text
         assert metadata["knowledge_gate_receipt_sha256"] == "receipt-sha"
         assert metadata["evidence_manifest_sha256"] == "manifest-sha"
         assert metadata["wrf_commit"] == "abcdef123456"
         assert metadata["wrf_target"]["scheme_module"] == "phys/module_mp_thompson.F"
+        assert metadata["wrf_target"]["wrf_source_root"].startswith("<absolute-path-redacted:")
         assert metadata["kg_decision_ids"] == ["require-kg-interaction-for-wrf-physics-changes"]
         assert metadata["required_decision_concept_ids"] == [concept_id]
         assert metadata["fixture_summary"]["holdout_cases"] == 1
+        assert "cases" not in metadata["fixture_summary"]
         assert metadata["knowledge_context_sha256"] == "context-sha"
         assert metadata["knowledge_context_receipts"][0]["okf_concept_id"] == concept_id
+        assert "resolved_path" not in metadata["knowledge_context_receipts"][0]
         knowledge_use = metadata["knowledge_use"]
         assert knowledge_use["knowledge_use_schema_version"] == 2
         assert knowledge_use["okf_bundle"]["root"] == "wiki"

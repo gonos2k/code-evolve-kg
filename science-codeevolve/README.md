@@ -1,4 +1,9 @@
 # CodeEvolve
+
+> This README is preserved from the upstream CodeEvolve snapshot. For the
+> `code-evolve-kg` wrapper layout, installation, CI, and security boundary, use
+> the repository-root README first.
+
 ```                                                                                                                                                                                                                                
                                          █████        █████                                         
                                      ██    ███████████████   ███                                    

@@ -134,6 +134,77 @@ def _json_safe(value: Any) -> Any:
     return str(value)
 
 
+def _looks_like_absolute_path(value: str) -> bool:
+    """Returns whether a string appears to expose a local absolute path."""
+    if Path(value).expanduser().is_absolute():
+        return True
+    return re.match(r"^[A-Za-z]:[\\/]", value) is not None
+
+
+def _public_receipt_value(value: Any) -> Any:
+    """Returns a Graphify-safe receipt value without local absolute paths."""
+    if isinstance(value, dict):
+        public: Dict[str, Any] = {}
+        for key, item in value.items():
+            key_text: str = str(key)
+            if key_text in {"resolved_path", "local_path"}:
+                continue
+            public[key_text] = _public_receipt_value(item)
+        return public
+    if isinstance(value, list):
+        return [_public_receipt_value(item) for item in value]
+    if isinstance(value, tuple):
+        return [_public_receipt_value(item) for item in value]
+    if isinstance(value, str) and _looks_like_absolute_path(value):
+        basename: str = Path(value).name or "path"
+        return f"<absolute-path-redacted:{basename}>"
+    return value
+
+
+def _public_fixture_summary(fixture_summary: Any) -> Dict[str, Any]:
+    """Builds a Graphify-safe fixture summary without local fixture paths."""
+    if not isinstance(fixture_summary, dict):
+        return {}
+    return _public_receipt_value(
+        {
+            "train_cases": fixture_summary.get("train_cases", 0),
+            "holdout_cases": fixture_summary.get("holdout_cases", 0),
+            "private_holdout_cases": fixture_summary.get("private_holdout_cases", 0),
+            "traceable_train_fixture_names": fixture_summary.get(
+                "traceable_train_fixture_names", []
+            ),
+            "traceable_train_fixture_names_truncated": fixture_summary.get(
+                "traceable_train_fixture_names_truncated", 0
+            ),
+            "fixture_receipts_sha256": fixture_summary.get("fixture_receipts_sha256"),
+        }
+    )
+
+
+def _public_knowledge_gate_summary(
+    *,
+    knowledge_gate_receipt: Dict[str, Any],
+    receipt_path: Optional[str],
+    receipt_sha256: Optional[str],
+) -> Dict[str, Any]:
+    """Builds the public Graphify link to a private knowledge-gate receipt."""
+    if not knowledge_gate_receipt:
+        return {}
+    wrf_target: Dict[str, Any] = knowledge_gate_receipt.get("wrf_target", {})
+    return _public_receipt_value(
+        {
+            "schema_version": knowledge_gate_receipt.get("schema_version"),
+            "gate_passed": knowledge_gate_receipt.get("gate_passed"),
+            "domain": knowledge_gate_receipt.get("domain"),
+            "receipt_path": receipt_path,
+            "receipt_sha256": receipt_sha256,
+            "manifest_sha256": knowledge_gate_receipt.get("manifest_sha256"),
+            "knowledge_context_sha256": knowledge_gate_receipt.get("knowledge_context_sha256"),
+            "wrf_commit": wrf_target.get("wrf_commit"),
+        }
+    )
+
+
 def _as_finite_float(value: Any, default: float = 0.0) -> float:
     """Converts numeric-like values to finite floats."""
     if isinstance(value, bool):
@@ -571,6 +642,20 @@ class EvolvedCodeGraphExporter:
             program=program,
             knowledge_gate_receipt=self.knowledge_gate_receipt,
         )
+        public_knowledge_gate: Dict[str, Any] = _public_knowledge_gate_summary(
+            knowledge_gate_receipt=self.knowledge_gate_receipt,
+            receipt_path=self.knowledge_gate_receipt_path,
+            receipt_sha256=self.knowledge_gate_receipt_sha256,
+        )
+        public_fixture_summary: Dict[str, Any] = _public_fixture_summary(
+            self.knowledge_gate_receipt.get("fixture_summary", {})
+        )
+        public_context_receipts: List[Dict[str, Any]] = _public_receipt_value(
+            self.knowledge_gate_receipt.get("knowledge_context_receipts", [])
+        )
+        public_knowledge_context_paths: List[str] = _public_receipt_value(
+            self.knowledge_context_paths
+        )
 
         return _json_safe(
             {
@@ -606,25 +691,25 @@ class EvolvedCodeGraphExporter:
                     str(diff_path.relative_to(self.root)) if diff_path is not None else None
                 ),
                 "knowledge_links": self.knowledge_links,
-                "knowledge_context_paths": self.knowledge_context_paths,
-                "knowledge_gate": self.knowledge_gate_receipt,
-                "knowledge_gate_receipt_path": self.knowledge_gate_receipt_path,
+                "knowledge_context_paths": public_knowledge_context_paths,
+                "knowledge_gate": public_knowledge_gate,
+                "knowledge_gate_receipt_path": _public_receipt_value(
+                    self.knowledge_gate_receipt_path
+                ),
                 "knowledge_gate_receipt_sha256": self.knowledge_gate_receipt_sha256,
                 "evidence_manifest_sha256": self.knowledge_gate_receipt.get("manifest_sha256"),
                 "wrf_commit": self.knowledge_gate_receipt.get("wrf_target", {}).get("wrf_commit"),
-                "wrf_target": self.knowledge_gate_receipt.get("wrf_target"),
+                "wrf_target": _public_receipt_value(self.knowledge_gate_receipt.get("wrf_target")),
                 "kg_decision_ids": self.knowledge_gate_receipt.get("kg_decision_ids", []),
                 "required_decision_concept_ids": self.knowledge_gate_receipt.get(
                     "required_decision_concept_ids", []
                 ),
-                "fixture_summary": self.knowledge_gate_receipt.get("fixture_summary", {}),
+                "fixture_summary": public_fixture_summary,
                 "knowledge_context_sha256": self.knowledge_gate_receipt.get(
                     "knowledge_context_sha256"
                 ),
-                "knowledge_context_receipts": self.knowledge_gate_receipt.get(
-                    "knowledge_context_receipts", []
-                ),
-                "knowledge_use": knowledge_use,
+                "knowledge_context_receipts": public_context_receipts,
+                "knowledge_use": _public_receipt_value(knowledge_use),
             }
         )
 
@@ -678,6 +763,13 @@ class EvolvedCodeGraphExporter:
             program=program,
             knowledge_gate_receipt=self.knowledge_gate_receipt,
         )
+        public_receipt_path: Any = _public_receipt_value(self.knowledge_gate_receipt_path)
+        public_fixture_summary: Dict[str, Any] = _public_fixture_summary(
+            self.knowledge_gate_receipt.get("fixture_summary", {})
+        )
+        public_knowledge_context_paths: List[str] = _public_receipt_value(
+            self.knowledge_context_paths
+        )
 
         lines: List[str] = [
             "---",
@@ -699,15 +791,15 @@ class EvolvedCodeGraphExporter:
             lines.extend(f"  - {_yaml_string(link)}" for link in self.knowledge_links)
         else:
             lines.append("knowledge_links: []")
-        if self.knowledge_context_paths:
+        if public_knowledge_context_paths:
             lines.append("knowledge_context_paths:")
-            lines.extend(f"  - {_yaml_string(path)}" for path in self.knowledge_context_paths)
+            lines.extend(f"  - {_yaml_string(path)}" for path in public_knowledge_context_paths)
         else:
             lines.append("knowledge_context_paths: []")
         if self.knowledge_gate_receipt:
             lines.extend(
                 [
-                    f"knowledge_gate_receipt_path: {_yaml_string(self.knowledge_gate_receipt_path or '')}",
+                    f"knowledge_gate_receipt_path: {_yaml_string(str(public_receipt_path or ''))}",
                     f"knowledge_gate_receipt_sha256: {_yaml_string(self.knowledge_gate_receipt_sha256 or '')}",
                     f"evidence_manifest_sha256: {_yaml_string(str(self.knowledge_gate_receipt.get('manifest_sha256', '')))}",
                     f"wrf_commit: {_yaml_string(str(self.knowledge_gate_receipt.get('wrf_target', {}).get('wrf_commit', '')))}",
@@ -763,8 +855,8 @@ class EvolvedCodeGraphExporter:
         else:
             lines.append("- (none configured)")
         lines.extend(["", "## Knowledge Context Paths", ""])
-        if self.knowledge_context_paths:
-            lines.extend(f"- `{path}`" for path in self.knowledge_context_paths)
+        if public_knowledge_context_paths:
+            lines.extend(f"- `{path}`" for path in public_knowledge_context_paths)
         else:
             lines.append("- (none configured)")
         if self.knowledge_gate_receipt:
@@ -773,13 +865,13 @@ class EvolvedCodeGraphExporter:
                     "",
                     "## Knowledge Gate",
                     "",
-                    f"- Receipt path: `{self.knowledge_gate_receipt_path}`",
+                    f"- Receipt path: `{public_receipt_path}`",
                     f"- Receipt sha256: `{self.knowledge_gate_receipt_sha256}`",
                     f"- Evidence manifest sha256: `{self.knowledge_gate_receipt.get('manifest_sha256')}`",
                     f"- Knowledge context sha256: `{self.knowledge_gate_receipt.get('knowledge_context_sha256')}`",
                     f"- WRF commit: `{self.knowledge_gate_receipt.get('wrf_target', {}).get('wrf_commit')}`",
                     f"- KG decision ids: `{', '.join(self.knowledge_gate_receipt.get('kg_decision_ids', []))}`",
-                    f"- Fixture summary: `{_json_safe(self.knowledge_gate_receipt.get('fixture_summary', {}))}`",
+                    f"- Fixture summary: `{_json_safe(public_fixture_summary)}`",
                 ]
             )
         lines.extend(
@@ -838,6 +930,9 @@ class EvolvedCodeGraphExporter:
     def _ensure_knowledge_bridge(self) -> None:
         """Writes the run-level bridge from Graphify corpus to KG pages."""
         bridge_path: Path = self.root / "knowledge_bridge.md"
+        public_knowledge_context_paths: List[str] = _public_receipt_value(
+            self.knowledge_context_paths
+        )
         lines: List[str] = [
             "# Knowledge Bridge",
             "",
@@ -852,17 +947,18 @@ class EvolvedCodeGraphExporter:
         else:
             lines.append("- (none configured)")
         lines.extend(["", "## Knowledge Context Paths", ""])
-        if self.knowledge_context_paths:
-            lines.extend(f"- `{path}`" for path in self.knowledge_context_paths)
+        if public_knowledge_context_paths:
+            lines.extend(f"- `{path}`" for path in public_knowledge_context_paths)
         else:
             lines.append("- (none configured)")
         if self.knowledge_gate_receipt:
+            public_receipt_path = _public_receipt_value(self.knowledge_gate_receipt_path)
             lines.extend(
                 [
                     "",
                     "## Knowledge Gate Receipt",
                     "",
-                    f"- Receipt path: `{self.knowledge_gate_receipt_path}`",
+                    f"- Receipt path: `{public_receipt_path}`",
                     f"- Receipt sha256: `{self.knowledge_gate_receipt_sha256}`",
                     f"- Evidence manifest sha256: `{self.knowledge_gate_receipt.get('manifest_sha256')}`",
                     f"- Knowledge context sha256: `{self.knowledge_gate_receipt.get('knowledge_context_sha256')}`",
