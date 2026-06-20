@@ -1,0 +1,40 @@
+schema_version: 1
+
+upstream:
+  repository: "https://github.com/inter-co/science-codeevolve"
+  tag: "v0.3.1"
+  commit: "70a656dee67640c26b414369c641fa5916e559b2"
+  commit_date: "2026-03-11T13:36:55Z"
+  package_name: "codeevolve"
+  package_version: "0.3.1"
+  license: "Apache-2.0"
+  verified_with:
+    - "git ls-remote --tags https://github.com/inter-co/science-codeevolve.git v0.3.1"
+    - "git clone --depth 1 --branch v0.3.1 https://github.com/inter-co/science-codeevolve.git"
+
+local_snapshot:
+  repository: "https://github.com/gonos2k/code-evolve-kg"
+  path: "science-codeevolve/"
+  imported_in_commit: "78f136e9c5ccccf23773eefdce24891cc3e3eea0"
+  import_commit_date: "2026-06-20T18:53:13+09:00"
+  import_commit_subject: "chore: add full CodeEvolve development snapshot"
+  snapshot_date: "2026-06-20"
+  reproducibility_note: >-
+    The import was a local development snapshot, not a clean upstream subtree
+    import. It initially included generated/local artifacts that were removed
+    from the current tree in later commits. Treat this file as provenance for
+    the upstream baseline and use repository history after imported_in_commit
+    to audit local changes.
+
+local_patch_scope:
+  - "CodeEvolve-specific KNOWLEDGE_CONTEXT and KNOWLEDGE_GATE integration"
+  - "Graphify evolved-code corpus export and public/private metadata boundary"
+  - "OKF-compatible KG/wiki bundle conventions"
+  - "GNU Fortran toolchain helper and fortran_stencil integration problem"
+  - "WRF single-physics problem setup scaffold and documentation"
+  - "CI hardening, dependency lockfile workflow, and audit jobs"
+
+not_in_scope:
+  - "Claiming demonstrated WRF physics optimization results"
+  - "Claiming KG grounding improves evolutionary fitness without ablation"
+  - "Providing a security sandbox for hostile generated code"

@@ -17,6 +17,53 @@ demonstrated scientific-discovery result. The WRF direction is designed and
 scaffolded, but it still needs a runnable single-physics benchmark with baseline
 numbers before it should be described as a validated WRF optimization capability.
 
+This note is a positioning memo, not a systematic literature review. The
+references below are evidence anchors for the main design axes and gaps that
+matter for this repository.
+
+## Evidence Anchors
+
+- AlphaEvolve: Novikov et al., "AlphaEvolve: A coding agent for scientific and
+  algorithmic discovery", arXiv:2506.13131, 2025.
+  <https://arxiv.org/abs/2506.13131>
+- FunSearch: Romera-Paredes et al., "Mathematical discoveries from program
+  search with large language models", Nature 625, 468-475, 2024,
+  doi:10.1038/s41586-023-06924-6.
+  <https://www.nature.com/articles/s41586-023-06924-6>
+- MAP-Elites and quality diversity: Mouret and Clune, "Illuminating search
+  spaces by mapping elites", arXiv:1504.04909, 2015.
+  <https://arxiv.org/abs/1504.04909>
+- ReEvo: Ye et al., "ReEvo: Large language models as hyper-heuristics with
+  reflective evolution", arXiv:2402.01145, 2024.
+  <https://arxiv.org/abs/2402.01145>
+- HSEvo: Dat, Doan, and Binh, "HSEvo: Elevating Automatic Heuristic Design with
+  Diversity-Driven Harmony Search and Genetic Algorithm Using LLMs",
+  arXiv:2412.14995, 2024.
+  <https://arxiv.org/abs/2412.14995>
+- ShinkaEvolve: Lange, Imajuku, and Cetin, "ShinkaEvolve: Towards Open-Ended And
+  Sample-Efficient Program Evolution", arXiv:2509.19349, 2025.
+  <https://arxiv.org/abs/2509.19349>
+- DeepEvolve: Liu, Zhu, Chen, and Jiang, "Scientific Algorithm Discovery by
+  Augmenting AlphaEvolve with Deep Research", arXiv:2510.06056, 2025.
+  <https://arxiv.org/abs/2510.06056>
+- EvoEngineer: Guo et al., "EvoEngineer: Mastering Automated CUDA Kernel Code
+  Evolution with Large Language Models", arXiv:2510.03760, 2025.
+  <https://arxiv.org/abs/2510.03760>
+
+## Feature Matrix
+
+| Axis | Current snapshot | Literature anchor | Status |
+| --- | --- | --- | --- |
+| LLM code mutation | Marked EVOLVE blocks and SEARCH/REPLACE edits. | AlphaEvolve, FunSearch | Implemented. |
+| Evaluator-grounded fitness | `evaluate.py` subprocess contract, resource containment, numeric metrics. | FunSearch, AlphaEvolve | Implemented, but semantic correctness depends on each problem evaluator. |
+| Island search | Island populations, migration, checkpoint/resume. | AlphaEvolve-lineage systems | Implemented. |
+| Quality diversity | Optional MAP-Elites archive. | MAP-Elites | Partial; descriptor choice can collapse to scalar fitness behavior. |
+| Diversity pressure | Embeddings may be computed, but are not used for novelty or migration quotas. | HSEvo, MAP-Elites | Gap. |
+| Sample efficiency | Mostly one generated candidate per evaluation epoch. | ShinkaEvolve | Gap; no rejection-sampling or bandit router yet. |
+| Reflection loop | Prompt co-evolution and evaluator feedback exist, but no first-class verbal-gradient record. | ReEvo | Gap. |
+| KG grounding | Static `KNOWLEDGE_CONTEXT`, `KNOWLEDGE_GATE`, and Graphify receipts. | DeepEvolve motivates external knowledge plus execution feedback. | Process/audit gain implemented; outcome gain unproven without ablation. |
+| Scientific Fortran direction | Runnable generic Fortran stencil; WRF single-physics scaffold. | EvoEngineer is the closest code-optimization analogue, but in CUDA. | Fortran example implemented; WRF flagship not demonstrated. |
+
 ## Strengths
 
 - The core follows the AlphaEvolve family closely: marked EVOLVE blocks,

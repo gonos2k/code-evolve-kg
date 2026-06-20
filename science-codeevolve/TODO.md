@@ -73,4 +73,7 @@ Each benchmark problem should have its own dependencies, and they should be inst
 
 ## Unit tests
 
-We currently only have a really simple test suite for the SEARCH/REPLACE operator. We need to vastly increase this: from basic tests of our classes, to more complicated simulated runs with the MOCK LLM setting.
+The current suite covers core utilities, KG context and gate behavior, Graphify
+export, Fortran toolchain/problem evaluation, and multiple negative-path cases.
+Remaining gaps are broader end-to-end evolution runs with the MOCK LLM setting,
+runnable WRF fixtures, isolation-layer tests, and wider type-check coverage.

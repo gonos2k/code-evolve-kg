@@ -55,6 +55,9 @@ checks, and dependency audit. CI also exports the locked `benchmarks` extra into
 requirements format and audits those optional benchmark dependencies without
 installing them. Update `uv.lock` together with dependency changes.
 
+The upstream CodeEvolve baseline, local import commit, and patch scope are
+recorded in `science-codeevolve/UPSTREAM.yml`.
+
 ## Literature Positioning
 
 This bundle should be described as a research-mature AlphaEvolve-lineage

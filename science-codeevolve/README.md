@@ -90,6 +90,7 @@ science-codeevolve/
     wrf_single_physics_problem_setup.md
   wiki/                    OKF-style project KG/wiki bundle
   tests/                   unit and integration tests
+  UPSTREAM.yml             upstream snapshot provenance
 ```
 
 ## Quick Start
@@ -283,8 +284,10 @@ allowlist, non-privileged UID/GID, cgroup limits, and syscall filtering.
 ## License and Upstream
 
 The `science-codeevolve/` tree is derived from the upstream CodeEvolve project
-and keeps its Apache-2.0 license in [LICENSE](LICENSE). The repository-level
-Codex skill wrapper is documented separately in the parent directory.
+and keeps its Apache-2.0 license in [LICENSE](LICENSE). The current upstream
+baseline is recorded in [UPSTREAM.yml](UPSTREAM.yml): upstream tag `v0.3.1`,
+commit `70a656dee67640c26b414369c641fa5916e559b2`. The repository-level Codex
+skill wrapper is documented separately in the parent directory.
 
 ## Citation
 
@@ -292,3 +295,6 @@ If you use upstream CodeEvolve research artifacts, cite the upstream project and
 paper as appropriate. This KG/WRF snapshot additionally changes the provenance,
 KG, Graphify, Fortran, and WRF problem-setup surface; do not cite it as evidence
 of WRF performance improvement until the runnable benchmark and ablations exist.
+Use [docs/literature_positioning.md](docs/literature_positioning.md) as the
+local claim-boundary and literature-anchor note, not as a substitute for a full
+systematic literature review.
