@@ -7,6 +7,11 @@ snapshot of the CodeEvolve KG integration work. The snapshot is source-focused:
 virtual environments, test caches, bytecode, and generated Graphify output are
 not part of the current tree.
 
+Note that this repository previously contained local development artifacts in
+its Git history. They are removed from the current tree and ignored for future
+commits, but a complete public cleanup requires an explicit history rewrite or
+repository recreation.
+
 Use this skill when modifying or reviewing CodeEvolve support for:
 
 - `KNOWLEDGE_CONTEXT`
@@ -43,6 +48,10 @@ The `science-codeevolve/` directory is intentionally broad because this
 repository is used as a development handoff bundle. It keeps the current source
 state together so KG, Graphify, WRF single-physics problem setup, Fortran
 toolchain support, tests, and documentation can be reviewed as one unit.
+
+CI installs dependencies from `science-codeevolve/uv.lock` with
+`uv sync --locked --extra dev` before running format checks, tests, scoped type
+checks, and dependency audit. Update `uv.lock` together with dependency changes.
 
 ## Security Boundary
 

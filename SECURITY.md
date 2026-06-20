@@ -22,6 +22,14 @@ The current Fortran evaluator removes only a small set of known API-related
 environment variables. That is not sufficient to protect credentials or local
 files on a host running untrusted code.
 
+## Repository History
+
+Generated artifacts and local virtual-environment files are excluded from the
+current tree, but earlier public commits may still contain development artifacts
+until the repository history is explicitly rewritten or the repository is
+recreated. Treat a current-tree cleanup as prevention of future artifact commits,
+not as retroactive removal from public history.
+
 ## Supported Use
 
 The current tree is suitable for trusted local research and development review.

@@ -9,6 +9,9 @@ on:
 permissions:
   contents: read
 
+env:
+  UV_VERSION: "0.9.7"
+
 jobs:
   format-check:
     name: Format check
@@ -27,14 +30,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          python -m pip install "uv==${UV_VERSION}"
+          uv sync --locked --extra dev
 
       - name: Check import order
-        run: isort --check-only src tests
+        run: uv run --no-sync isort --check-only src tests
 
       - name: Check formatting
-        run: black --check src tests
+        run: uv run --no-sync black --check src tests
 
   unit-tests:
     name: Unit tests
@@ -53,11 +56,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          python -m pip install "uv==${UV_VERSION}"
+          uv sync --locked --extra dev
 
       - name: Run tests
-        run: pytest tests/ -v
+        run: uv run --no-sync pytest tests/ -v
 
   fortran-tests:
     name: Fortran integration tests
@@ -81,14 +84,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          python -m pip install "uv==${UV_VERSION}"
+          uv sync --locked --extra dev
 
       - name: Run Fortran tests
-        run: pytest tests/fortran/ -v
+        run: uv run --no-sync pytest tests/fortran/ -v
 
-  kg-type-check:
-    name: KG integration type check
+  kg-scoped-type-check:
+    name: Scoped KG integration type check
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -104,12 +107,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          python -m pip install "uv==${UV_VERSION}"
+          uv sync --locked --extra dev
 
-      - name: Type-check KG/Graphify/Fortran integration
+      - name: Scoped type-check KG/Graphify/Fortran integration
         run: |
-          mypy \
+          uv run --no-sync mypy \
             src/codeevolve/prompt/knowledge.py \
             src/codeevolve/prompt/knowledge_gate.py \
             src/codeevolve/utils/graphify_export.py \
@@ -137,8 +140,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          python -m pip install "uv==${UV_VERSION}"
+          uv sync --locked --extra dev
 
       - name: Audit installed Python dependencies
-        run: pip-audit --local --skip-editable
+        run: uv run --no-sync pip-audit --local --skip-editable
