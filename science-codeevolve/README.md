@@ -5,9 +5,9 @@ KG, Graphify, Fortran, and WRF single-physics work layered on top.
 
 It should be read as a research and engineering handoff, not as a production
 service and not as a demonstrated WRF physics-optimization result. The current
-validated executable scientific example is the generic Fortran stencil problem.
-The WRF single-physics path is designed and scaffolded, but it still needs a
-runnable target, fixtures, parity checks, and baseline numbers.
+validated executable Fortran example is the generic stencil problem. The WRF
+single-physics path is designed and scaffolded, but it still needs a runnable
+target, fixtures, parity checks, and baseline numbers.
 
 For the repository-level wrapper skill, CI layout, and license boundary, start
 with the parent [README](../README.md).
@@ -94,11 +94,15 @@ science-codeevolve/
 
 ## Quick Start
 
-Requirements:
+Core requirements:
 
 - Python `>=3.13.5`
 - `uv`
-- GNU Fortran (`gfortran`) for Fortran integration tests and examples
+
+Fortran requirements:
+
+- GNU Fortran (`gfortran`) is needed only for the Fortran integration tests and
+  Fortran examples.
 
 Install development dependencies from the lockfile:
 
@@ -143,13 +147,7 @@ The repository-level CI runs these checks from the repository root with
 
 ## Running CodeEvolve
 
-Install the package in editable form:
-
-```bash
-uv run --no-sync pip install -e .
-```
-
-The package exposes the `codeevolve` console script:
+After `uv sync`, confirm that the `codeevolve` console script is available:
 
 ```bash
 uv run --no-sync codeevolve --help
