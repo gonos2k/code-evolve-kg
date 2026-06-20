@@ -21,8 +21,16 @@ This note is a positioning memo, not a systematic literature review. The
 references below are evidence anchors for the main design axes and gaps that
 matter for this repository.
 
+It has also been cross-checked against the local code-evolution wiki corpus: 56
+source pages, 24 concept pages, and review/challenge notes for `code-evolve-kg`.
+That wiki is used here as a secondary map of the field's tensions. Primary
+papers and raw repository behavior remain the authority for claims.
+
 ## Evidence Anchors
 
+- CodeEvolve: "CodeEvolve: an open source evolutionary coding agent for
+  algorithmic discovery and optimization", arXiv:2510.14150, 2025.
+  <https://arxiv.org/abs/2510.14150>
 - AlphaEvolve: Novikov et al., "AlphaEvolve: A coding agent for scientific and
   algorithmic discovery", arXiv:2506.13131, 2025.
   <https://arxiv.org/abs/2506.13131>
@@ -49,6 +57,17 @@ matter for this repository.
 - EvoEngineer: Guo et al., "EvoEngineer: Mastering Automated CUDA Kernel Code
   Evolution with Large Language Models", arXiv:2510.03760, 2025.
   <https://arxiv.org/abs/2510.03760>
+- Benchmark/component-analysis bar: "Understanding the Importance of
+  Evolutionary Search in Automated Heuristic Design with Large Language Models",
+  arXiv:2407.10873, 2024. <https://arxiv.org/abs/2407.10873>
+- BLADE benchmark suite: arXiv:2504.20183, 2025.
+  <https://arxiv.org/abs/2504.20183>
+- CATArena iterative-tournament evaluation: arXiv:2510.26852, 2025.
+  <https://arxiv.org/abs/2510.26852>
+- MEoH multi-objective heuristic evolution: arXiv:2409.16867, 2024.
+  <https://arxiv.org/abs/2409.16867>
+- CALM co-evolution of algorithms and language model: arXiv:2505.12285, 2025.
+  <https://arxiv.org/abs/2505.12285>
 
 ## Feature Matrix
 
@@ -63,6 +82,60 @@ matter for this repository.
 | Reflection loop | Prompt co-evolution and evaluator feedback exist, but no first-class verbal-gradient record. | ReEvo | Gap. |
 | KG grounding | Static `KNOWLEDGE_CONTEXT`, `KNOWLEDGE_GATE`, and Graphify receipts. | DeepEvolve motivates external knowledge plus execution feedback. | Process/audit gain implemented; outcome gain unproven without ablation. |
 | Scientific Fortran direction | Runnable generic Fortran stencil; WRF single-physics scaffold. | EvoEngineer is the closest code-optimization analogue, but in CUDA. | Fortran example implemented; WRF flagship not demonstrated. |
+| Component ablation | No KG on/off, diversity on/off, or reflection on/off ablation suite yet. | Understanding evolutionary search, BLADE | Gap; required before component-value claims. |
+| Multi-objective output | Fitness is a scalar chosen by the problem config. | MEoH, MPaGE-style Pareto-grid work | Gap; no Pareto frontier or set-valued output in core selection. |
+| Operator learning | LLMs are treated as fixed mutation operators. | CALM, EvoTune, SOAR-style coupling | Out of scope for current snapshot. |
+| Process benchmark analysis | Graphify records provenance, but no BLADE/CATArena-style process benchmark is shipped. | BLADE, CATArena | Partial; structural traces exist, standardized process metrics do not. |
+
+## Corpus-Derived Claim Taxonomy
+
+The code-evolution wiki review separates process improvements from outcome
+claims. Preserve that split in public wording.
+
+| Claim | Acceptable wording today | Evidence needed to strengthen it |
+| --- | --- | --- |
+| Provenance and auditability | KG and Graphify improve traceability, reviewability, and correctness discipline. | Current receipts, public/private metadata split, gate tests, and candidate cards are enough for this process claim. |
+| Fortran executable path | The generic stencil demonstrates compile, correctness, and benchmark gates for Fortran candidates. | Already shown by `problems/fortran_stencil` and Fortran integration tests. |
+| KG improves evolutionary outcomes | Not supported yet. Say only that KG may improve outcomes and that this is a hypothesis. | Same-seed, same-budget KG on/off ablations, plus a verified usage signal beyond candidate self-report. |
+| WRF physics optimization | Not supported yet. Say the WRF path is scaffolded and designed. | A runnable pinned WRF single-physics problem, train/holdout fixtures, parity checks, baseline speed/correctness numbers, and accepted-candidate smoke procedure. |
+| Safe hostile-code execution | Not supported. Say the evaluator is resource containment, not isolation. | External sandbox: network-denied rootless container or jail, read-only filesystem, env allowlist, non-privileged UID/GID, cgroup limits, and syscall filtering. |
+| Literature-frontier search quality | Partially supported as an AlphaEvolve-lineage implementation, not as frontier sample efficiency. | Diversity-aware selection/migration, rejection sampling, reward-bandit routing, reflection records, and component ablations. |
+
+## Wiki-Derived Tension Map
+
+The local wiki's graph report highlights these live tensions. They are useful as
+design review prompts because each one maps to a concrete repository gap.
+
+- **Evolutionary search vs. one-shot LLM skill**: component value is
+  inadequately justified without controlled baselines and ablations. This is the
+  standard that any KG, diversity, or reflection claim must meet.
+- **Outcome grounding vs. provenance grounding**: DeepEvolve supports the idea
+  that external knowledge can help scientific evolution, but its documented gain
+  comes from active retrieval plus feedback. This snapshot implements static
+  context and auditable declarations, so its current claim is process strength.
+- **Diversity vs. convergence**: HSEvo, MAP-Elites, MEoH, and MPaGE-style
+  systems all treat diversity as operational, not decorative. This snapshot has
+  embeddings and optional archives but lacks novelty-aware selection and
+  migration.
+- **Sample efficiency vs. brute-force calls**: ShinkaEvolve's rejection sampling
+  and bandit-style routing make sample count a first-class metric. This snapshot
+  should report model calls, syntactic rejects, evaluated candidates, accepted
+  candidates, and best-fitness-per-call before claiming efficiency.
+- **Reflection vs. scalar-only feedback**: ReEvo-style verbal gradients are a
+  separate search signal. This snapshot passes evaluator feedback through
+  prompts but does not persist a reflection object that can be inspected,
+  ablated, or reused.
+- **Single winner vs. Pareto/set output**: scientific kernels often involve
+  speed, accuracy, conservation, stability, and maintainability tradeoffs. A
+  single scalar fitness is acceptable for first experiments, but not for broad
+  physical-process claims.
+- **Fixed operator vs. co-evolved operator**: CALM/EvoTune/SOAR-style systems
+  fold search results back into the model. This snapshot deliberately avoids
+  fine-tuning infrastructure; that is a cost/simplicity tradeoff, not a frontier
+  capability.
+- **Kernel-local vs. repository-scale evolution**: WRF work should keep the
+  editable surface narrow, but the evidence chain must still cover WRF host
+  contracts, fixtures, and full-model smoke behavior.
 
 ## Strengths
 
@@ -142,7 +215,20 @@ Ship one runnable `wrf_single_physics` problem that pins:
 
 This turns the WRF capability from sound-by-design into demonstrated behavior.
 
-### P1: Add Diversity Pressure
+### P1: Measure KG Grounding as a Component
+
+Before claiming that KG improves evolution, run an ablation suite:
+
+- same problem, seed set, model configuration, budget, and evaluator
+- `KNOWLEDGE_CONTEXT` and `KNOWLEDGE_GATE` enabled vs disabled
+- static context only vs active retrieval if a retriever is later added
+- declared usage vs verified usage separated in metrics
+- best fitness, median fitness, accepted-candidate rate, compile/error rate,
+  and best-fitness-per-model-call reported
+
+The minimum defensible output is a table that can falsify the KG benefit claim.
+
+### P2: Add Diversity Pressure
 
 Use existing embeddings and descriptors in the search loop:
 
@@ -151,7 +237,7 @@ Use existing embeddings and descriptors in the search loop:
 - embedding-distance or AST/metric descriptors for MAP-Elites
 - archive reporting that distinguishes quality from descriptor coverage
 
-### P2: Improve Sample Efficiency
+### P3: Improve Sample Efficiency
 
 Add low-cost rejection and routing before expensive evaluation:
 
@@ -160,13 +246,27 @@ Add low-cost rejection and routing before expensive evaluation:
   strategies
 - accounting that reports accepted/evaluated candidates per model call
 
-### P3: Add Reflection and Core Evaluation Attestation
+### P4: Add Reflection and Core Evaluation Attestation
 
 Introduce a reflection record that summarizes failures, accepted design
 constraints, and next mutation hypotheses. Separately, make problem evaluators
 declare the gates they implement, such as correctness, finite-number checks,
 input immutability, train/holdout split, and semantic acceptance policy. The core
 should record this declaration and surface missing gates in metadata.
+
+### P5: Add Multi-Objective Reporting
+
+Keep scalar fitness for simple examples, but make scientific runs report the
+objective vector separately:
+
+- speed ratio
+- absolute and relative error
+- conservation or budget metrics
+- stability or failure rate across fixtures
+- code size or maintainability proxy when relevant
+
+Selection can remain scalar initially, but metadata should be ready for Pareto
+analysis before making WRF physics-quality claims.
 
 ## Recommended Wording
 

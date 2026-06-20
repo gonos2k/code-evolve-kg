@@ -18,6 +18,14 @@ selection, diversity-aware migration quotas, and meaningful descriptors such as
 embedding distance, AST/code-shape features, or domain metrics so quality and
 diversity are not collapsed into scalar fitness.
 
+### Measure KG grounding as a component
+
+Run same-seed, same-budget ablations with KG context/gate enabled and disabled.
+Report best fitness, median fitness, accepted-candidate rate, compile/error
+rate, and best-fitness-per-model-call. Keep declared knowledge use separate from
+verified use so the experiment can falsify, not just support, the KG benefit
+claim.
+
 ### Improve sample efficiency
 
 The current loop is mostly one generated candidate per evaluation epoch. Add
@@ -32,6 +40,13 @@ hypotheses. Separately, make problem evaluators declare which gates they enforce
 such as correctness, finite-number checks, input immutability, train/holdout
 split, and semantic acceptance policy. The core should record this declaration
 and surface missing gates in metadata.
+
+### Add multi-objective reporting
+
+Keep scalar fitness for simple examples, but have scientific runs emit the
+objective vector separately: speed ratio, absolute and relative error,
+conservation or budget metrics, fixture failure rate, and code-size or
+maintainability proxies when relevant.
 
 ## New Features
 

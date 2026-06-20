@@ -62,7 +62,8 @@ Not yet supported:
 - The evaluator is not a security sandbox for hostile generated code.
 
 See [docs/literature_positioning.md](docs/literature_positioning.md) for the
-literature-facing positioning, limitations, and roadmap.
+literature-facing positioning, corpus-derived claim taxonomy, limitations, and
+roadmap.
 
 ## Directory Map
 
@@ -272,11 +273,15 @@ allowlist, non-privileged UID/GID, cgroup limits, and syscall filtering.
 ## Known Gaps
 
 - No ablation yet shows that KG grounding improves evolutionary outcomes.
+- No component-analysis suite yet separates the value of KG, diversity,
+  reflection, prompt strategy, or evaluator policy.
 - WRF single-physics is not yet runnable end-to-end.
 - Diversity pressure is weak: embeddings are optional and not used for novelty,
   selection, migration, or MAP-Elites descriptors.
 - Sample efficiency is limited: no rejection sampling or reward-bandit routing.
 - Reflection is not a first-class ReEvo-style loop.
+- Multi-objective/Pareto reporting is not implemented in the core selection
+  loop.
 - Core correctness still depends on the problem's `evaluate.py`.
 - Full mypy coverage is not enabled for all core modules.
 - Public Git history may still contain old development artifacts.
