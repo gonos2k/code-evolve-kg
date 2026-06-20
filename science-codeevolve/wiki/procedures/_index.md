@@ -5,4 +5,5 @@ date_modified: 2026-06-20
 ---
 # Procedures
 
+- [[prepare-kim-kdm6-codeevolve-problem]] — setup sequence for a KIM-meso KDM6 Fortran-only benchmark
 - [[prepare-wrf-single-physics-codeevolve-problem]] — setup sequence for an executable WRF single-physics benchmark

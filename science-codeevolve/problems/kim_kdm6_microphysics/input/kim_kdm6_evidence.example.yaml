@@ -1,0 +1,130 @@
+# Evidence scaffold for the Fortran-only KIM-meso KDM6 problem.
+# This is intentionally not a runnable manifest yet. The current executable
+# milestone is a full KIM-meso mp_physics=37 baseline followed by a standalone
+# Fortran parity driver and captured fixtures.
+
+schema_version: 1
+domain: "kim_kdm6_microphysics"
+
+target:
+  model: "KIM-meso_v1.0"
+  source_root_env: "KIM_MESO_SOURCE_ROOT"
+  physics_family: "microphysics"
+  namelist_option: "mp_physics"
+  namelist_value: 37
+  registry_package: "kdm6scheme"
+  scheme_module: "phys/module_mp_kdm6.F"
+  driver_module: "phys/module_microphysics_driver.F"
+  registry_file: "Registry/Registry.EM_COMMON"
+  entrypoint: "kdm6"
+  first_inner_target: "kdm62D"
+  allowed_edit_scope: "single EVOLVE block inside phys/module_mp_kdm6.F"
+
+non_targets:
+  - "phys/module_mp_kdm6ad.F"
+  - "phys/kdm6_iso_c.F"
+  - "LibTorch runtime"
+  - "C ABI wrappers"
+  - "VJP/JVP or AD execution path"
+
+full_model_baseline:
+  required: true
+  source_root_env: "KIM_MESO_SOURCE_ROOT"
+  compile:
+    required: true
+    command: "./compile <selected-kim-meso-case>"
+    log_path: "replace-with-bundle-relative-build-log"
+    log_sha256: "replace-with-build-log-sha256"
+    wrf_exe_path: "main/wrf.exe"
+    wrf_exe_sha256: "replace-with-main-wrf-exe-sha256"
+    ideal_exe_path: "main/ideal.exe"
+    ideal_exe_sha256: "replace-with-main-ideal-exe-sha256-if-used"
+  run:
+    required: true
+    namelist_path: "replace-with-bundle-relative-namelist.input"
+    namelist_sha256: "replace-with-namelist-sha256"
+    required_namelist:
+      mp_physics: 37
+    forbidden_namelist:
+      mp_physics: 137
+    log_path: "replace-with-bundle-relative-rsl-or-run-log"
+    log_sha256: "replace-with-run-log-sha256"
+    success_pattern: "wrf: SUCCESS COMPLETE WRF"
+    output_path: "replace-with-bundle-relative-wrfout.37.nc"
+    output_sha256: "replace-with-wrfout-sha256"
+  fixture_capture:
+    required: true
+    source: "successful mp_physics=37 full KIM-meso run"
+    artifact_path: "replace-with-bundle-relative-kdm6-boundary-fixture"
+    artifact_sha256: "replace-with-fixture-sha256"
+
+sources:
+  - kind: "raw_kim_fortran_code"
+    role: "candidate_and_reference_scheme"
+    path: "phys/module_mp_kdm6.F"
+    sha256: "948d64b3dd7722a8eca730afc08544115907ec1b4a1561d737dadcea80a88f2a"
+  - kind: "raw_kim_fortran_code"
+    role: "fixed_driver_contract"
+    path: "phys/module_microphysics_driver.F"
+    sha256: "6d4f09b4e0306131e585dbd3b7456850db878f459f2202b3dc67061026e5c056"
+  - kind: "raw_kim_registry"
+    role: "fixed_registry_contract"
+    path: "Registry/Registry.EM_COMMON"
+    sha256: "19612afc3dd73931c11a6065cc87457da5cead98191052acc8a1e3d8c9af067e"
+  - kind: "raw_kim_fortran_code"
+    role: "direct_dependency"
+    path: "phys/module_mp_radar.F"
+    sha256: "aa99da858be41efa579966680708d230123a7417560af0eb2e24f4c94e253688"
+  - kind: "raw_kim_fortran_code"
+    role: "direct_dependency"
+    path: "share/module_model_constants.F"
+    sha256: "5b80377fecdc18a5f0ad38d3b6c15cfc86ad5d76701adbbbb08a08698d0f7062"
+
+kg:
+  context_paths:
+    - "wiki/decisions/target-kim-kdm6-fortran-path.md"
+    - "wiki/concepts/kim-kdm6-microphysics-optimization.md"
+    - "wiki/concepts/standalone-physics-boundary-fixture.md"
+    - "wiki/procedures/prepare-kim-kdm6-codeevolve-problem.md"
+  required_decisions:
+    - "target-kim-kdm6-fortran-path"
+
+fixtures:
+  train: []
+  holdout: []
+  private_holdout: []
+
+required_fixture_outputs:
+  - "TH"
+  - "Q"
+  - "QC"
+  - "QR"
+  - "QI"
+  - "QS"
+  - "QG"
+  - "NN"
+  - "NC"
+  - "NI"
+  - "NR"
+  - "BG"
+  - "RAIN"
+  - "RAINNCV"
+  - "SNOW"
+  - "SNOWNCV"
+  - "GRAUPEL"
+  - "GRAUPELNCV"
+  - "SR"
+  - "REFL_10CM"
+  - "re_cloud"
+  - "re_ice"
+  - "re_snow"
+
+status:
+  executable: false
+  missing:
+    - "recorded full KIM-meso mp_physics=37 compile/run baseline receipt"
+    - "standalone Fortran KDM6 driver"
+    - "captured KIM-meso boundary fixtures"
+    - "debug parity tolerance policy"
+    - "release benchmark baseline"
+    - "host KIM-meso mp_physics=37 smoke case"

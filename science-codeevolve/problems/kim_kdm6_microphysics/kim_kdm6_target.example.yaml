@@ -1,0 +1,56 @@
+# Example target contract for the Fortran-only KIM-meso KDM6 problem.
+# This file is a setup scaffold. It is not consumed by CodeEvolve until the
+# standalone KDM6 evaluator is implemented.
+
+KIM_KDM6_TARGET:
+  model: "KIM-meso_v1.0"
+  source_root_env: "KIM_MESO_SOURCE_ROOT"
+
+  physics_family: "microphysics"
+  namelist_option: "mp_physics"
+  namelist_value: 37
+  registry_package: "kdm6scheme"
+
+  scheme_module: "phys/module_mp_kdm6.F"
+  driver_module: "phys/module_microphysics_driver.F"
+  registry_file: "Registry/Registry.EM_COMMON"
+  entrypoint: "kdm6"
+  first_inner_target: "kdm62D"
+
+  allowed_edit_scope: "single EVOLVE block inside phys/module_mp_kdm6.F"
+  language: "fortran_preprocessed"
+  source_form: "free"
+
+  immutable_contracts:
+    - "module name module_mp_kdm6"
+    - "public subroutine kdm6 signature"
+    - "driver CASE (KDM6SCHEME) dispatch"
+    - "Registry mp_physics==37 package mapping"
+    - "moist/scalar/state species order"
+    - "array layout and units"
+    - "precipitation accumulator copy-back semantics"
+    - "radar reflectivity and effective-radius diagnostic outputs"
+
+  excluded_paths:
+    - "phys/module_mp_kdm6ad.F"
+    - "phys/kdm6_iso_c.F"
+    - "any LibTorch, C ABI, VJP/JVP, or AD runtime path"
+
+  fitness_prerequisite:
+    required: true
+    baseline_kind: "full_kim_meso_compile_and_run"
+    required_namelist_value: "mp_physics=37"
+    invalid_namelist_value: "mp_physics=137"
+    required_artifacts:
+      - "build log digest"
+      - "run log digest showing successful mp_physics=37 completion"
+      - "namelist.input digest for the mp_physics=37 run"
+      - "wrfout.37* digest or equivalent KDM6 output artifact"
+      - "captured KDM6 boundary fixture generated from that run"
+
+  source_digests:
+    "phys/module_mp_kdm6.F": "948d64b3dd7722a8eca730afc08544115907ec1b4a1561d737dadcea80a88f2a"
+    "phys/module_microphysics_driver.F": "6d4f09b4e0306131e585dbd3b7456850db878f459f2202b3dc67061026e5c056"
+    "Registry/Registry.EM_COMMON": "19612afc3dd73931c11a6065cc87457da5cead98191052acc8a1e3d8c9af067e"
+    "phys/module_mp_radar.F": "aa99da858be41efa579966680708d230123a7417560af0eb2e24f4c94e253688"
+    "share/module_model_constants.F": "5b80377fecdc18a5f0ad38d3b6c15cfc86ad5d76701adbbbb08a08698d0f7062"

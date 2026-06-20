@@ -1,13 +1,14 @@
-# CodeEvolve KG/WRF Research Snapshot
+# CodeEvolve KG Scientific-Code Research Snapshot
 
 This directory is a development snapshot of CodeEvolve with CodeEvolve-specific
-KG, Graphify, Fortran, and WRF single-physics work layered on top.
+KG, Graphify, Fortran, WRF single-physics, and KIM-meso KDM6 microphysics work
+layered on top.
 
 It should be read as a research and engineering handoff, not as a production
-service and not as a demonstrated WRF physics-optimization result. The current
-validated executable Fortran example is the generic stencil problem. The WRF
-single-physics path is designed and scaffolded, but it still needs a runnable
-target, fixtures, parity checks, and baseline numbers.
+service and not as a demonstrated NWP physics-optimization result. The current
+validated executable Fortran example is the generic stencil problem. The WRF and
+KIM-meso KDM6 paths are designed and scaffolded, but they still need runnable
+targets, fixtures, parity checks, and baseline numbers.
 
 For the repository-level wrapper skill, CI layout, and license boundary, start
 with the parent [README](../README.md).
@@ -39,6 +40,11 @@ with the parent [README](../README.md).
   - WRF target contract examples
   - KG/OKF guardrails
   - standalone-fixture architecture documentation
+- KIM-meso KDM6 microphysics setup:
+  - Fortran-only target boundary for `phys/module_mp_kdm6.F`
+  - explicit exclusion of KDM6AD, LibTorch, and AD runtime paths
+  - full KIM-meso `mp_physics=37` compile/run baseline prerequisite
+  - source digest and evidence-manifest scaffold
 
 ## Current Claim Boundary
 
@@ -57,8 +63,8 @@ Not yet supported:
   efficiency. That needs KG on/off ablations under the same seeds and budget.
 - `KNOWLEDGE USE` is a structured model self-report, not verified causal proof
   that the model used a concept.
-- WRF physics optimization is not yet demonstrated by an in-repo executable
-  benchmark.
+- WRF or KIM-meso KDM6 physics optimization is not yet demonstrated by an
+  in-repo executable benchmark.
 - The evaluator is not a security sandbox for hostile generated code.
 
 See [docs/literature_positioning.md](docs/literature_positioning.md) for the
@@ -85,7 +91,9 @@ science-codeevolve/
   problems/
     fortran_stencil/       runnable Fortran integration example
     wrf_single_physics/    WRF problem scaffold and examples
+    kim_kdm6_microphysics/ KIM-meso KDM6 Fortran-only scaffold
   docs/
+    kim_kdm6_microphysics_problem_setup.md
     literature_positioning.md
     okf_knowledge_usage_assessment.md
     wrf_single_physics_problem_setup.md
@@ -264,6 +272,38 @@ problem setup, not a validated WRF optimization benchmark.
 
 See [docs/wrf_single_physics_problem_setup.md](docs/wrf_single_physics_problem_setup.md).
 
+## KIM-meso KDM6 Status
+
+The KIM-meso KDM6 path is a scaffold for improving the original Fortran KDM6
+microphysics implementation in a user-supplied KIM-meso v1.0 source tree.
+
+The valid target is:
+
+```text
+phys/module_mp_kdm6.F
+```
+
+The fixed host contracts are:
+
+```text
+phys/module_microphysics_driver.F
+Registry/Registry.EM_COMMON
+mp_physics=37
+```
+
+KDM6AD, LibTorch, C ABI, VJP/JVP, and AD runtime files are explicitly excluded
+from the candidate, reference, and validation surface. The fitness function is
+not valid until the original KIM-meso tree compiles and runs a Fortran KDM6
+`mp_physics=37` baseline. Standalone Fortran fixtures are an inner-loop
+acceleration only after they reproduce that full-model baseline.
+
+Use `scripts/verify_kim_kdm6_baseline.py` to validate copied baseline evidence
+and write a private receipt before defining KDM6 fitness.
+
+See
+[docs/kim_kdm6_microphysics_problem_setup.md](docs/kim_kdm6_microphysics_problem_setup.md)
+and [problems/kim_kdm6_microphysics/README.md](problems/kim_kdm6_microphysics/README.md).
+
 ## Security Boundary
 
 Candidate programs run in temporary working directories with subprocess
@@ -281,6 +321,8 @@ allowlist, non-privileged UID/GID, cgroup limits, and syscall filtering.
 - No component-analysis suite yet separates the value of KG, diversity,
   reflection, prompt strategy, or evaluator policy.
 - WRF single-physics is not yet runnable end-to-end.
+- KIM-meso KDM6 is not yet runnable inside CodeEvolve; it first needs a recorded
+  full-model `mp_physics=37` compile/run baseline and extracted fixtures.
 - Diversity pressure is weak: embeddings are optional and not used for novelty,
   selection, migration, or MAP-Elites descriptors.
 - Sample efficiency is limited: no rejection sampling or reward-bandit routing.
@@ -302,9 +344,10 @@ skill wrapper is documented separately in the parent directory.
 ## Citation
 
 If you use upstream CodeEvolve research artifacts, cite the upstream project and
-paper as appropriate. This KG/WRF snapshot additionally changes the provenance,
-KG, Graphify, Fortran, and WRF problem-setup surface; do not cite it as evidence
-of WRF performance improvement until the runnable benchmark and ablations exist.
+paper as appropriate. This KG/scientific-code snapshot additionally changes the
+provenance, KG, Graphify, Fortran, WRF, and KIM-meso KDM6 problem-setup surface;
+do not cite it as evidence of NWP physics performance improvement until runnable
+benchmarks and ablations exist.
 Use [docs/literature_positioning.md](docs/literature_positioning.md) as the
 local claim-boundary and literature-anchor note, not as a substitute for a full
 systematic literature review.
