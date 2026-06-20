@@ -340,6 +340,7 @@ class TestEvaluateAndStore:
 
         assert improved is False
         assert child.fitness == 0.0
+        assert child.eval_metrics["failure_code"] == 17.0
         assert child.eval_metrics["acceptance_policy_passed"] == 0.0
         assert child.eval_metrics["static_policy_rejections"] == 0.0
         assert child.eval_metrics["knowledge_policy_rejections"] == 1.0
@@ -420,6 +421,7 @@ class TestEvaluateAndStore:
 
         assert improved is False
         assert child.fitness == 0.0
+        assert child.eval_metrics["failure_code"] == 17.0
         assert child.eval_metrics["acceptance_policy_passed"] == 0.0
         assert child.eval_metrics["static_policy_rejections"] == 0.0
         assert child.eval_metrics["knowledge_policy_rejections"] == 1.0

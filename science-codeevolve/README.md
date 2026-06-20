@@ -124,7 +124,7 @@ CodeEvolve operates as a distributed evolutionary algorithm where code itself is
    - Preserves working code outside evolution zones
    - Applies structured diffs rather than regenerating entire files
 
-5. **Evaluation**: Execute in sandboxed environment
+5. **Evaluation**: Execute in a resource-contained temporary environment
    - Resource limits (time, memory)
    - Capture metrics and errors
    - Extract fitness from evaluation results

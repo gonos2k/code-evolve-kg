@@ -890,6 +890,8 @@ def _build_static_policy(
     return {
         "enabled": _as_bool(static_policy.get("enabled"), domain == "wrf_single_physics"),
         "failure_code": int(static_policy.get("failure_code", 16)),
+        "knowledge_failure_code": int(static_policy.get("knowledge_failure_code", 17)),
+        "mixed_failure_code": int(static_policy.get("mixed_failure_code", 18)),
         "forbidden_patterns": forbidden_patterns,
         "scan_scope": str(
             static_policy.get(

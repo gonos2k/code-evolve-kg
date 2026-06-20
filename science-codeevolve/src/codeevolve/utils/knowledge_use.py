@@ -152,12 +152,12 @@ def required_decision_concepts_by_id(
         configured_ids: Any = configured_by_id.get(decision_id, [])
         if not isinstance(configured_ids, list):
             configured_ids = []
-        computed_ids: Set[str] = set(computed_by_id.get(decision_id, []))
+        computed_id_set: Set[str] = set(computed_by_id.get(decision_id, []))
         valid_by_id[decision_id] = list(
             dict.fromkeys(
                 str(concept_id)
                 for concept_id in configured_ids
-                if str(concept_id).strip() and str(concept_id) in computed_ids
+                if str(concept_id).strip() and str(concept_id) in computed_id_set
             )
         )
     return valid_by_id

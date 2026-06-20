@@ -118,6 +118,20 @@ def _candidate_policy_rejections_by_kind(
     )
 
 
+def _candidate_policy_failure_code(
+    policy_rejections_by_kind: Dict[str, List[str]],
+    static_policy: Dict[str, Any],
+) -> float:
+    """Returns a telemetry code that distinguishes static and KG policy failures."""
+    has_static_rejection: bool = bool(policy_rejections_by_kind.get("static"))
+    has_knowledge_rejection: bool = bool(policy_rejections_by_kind.get("knowledge"))
+    if has_static_rejection and has_knowledge_rejection:
+        return float(static_policy.get("mixed_failure_code", 18))
+    if has_knowledge_rejection:
+        return float(static_policy.get("knowledge_failure_code", 17))
+    return float(static_policy.get("failure_code", 16))
+
+
 def _raise_on_candidate_policy_rejections(
     program: Program,
     *,
@@ -547,7 +561,7 @@ async def evaluate_and_store(
     """
     Evaluate a solution program and add it to the database if valid.
 
-    This function executes the child solution in a sandboxed environment, computes
+    This function executes the child solution with resource containment, computes
     fitness metrics, optionally generates code embeddings, and adds the program to
     the solution database. It also updates the associated prompt's fitness if the
     child improves upon it.
@@ -563,7 +577,7 @@ async def evaluate_and_store(
     Args:
         child_sol: Unevaluated child solution program
         prompt: Prompt used to generate this solution
-        evaluator: Program evaluator with sandboxing
+        evaluator: Program evaluator with resource containment
         sol_db: Solution database for storage
         prompt_db: Prompt database for updating prompt fitness
         embedding: Optional embedding model for code vectorization
@@ -602,7 +616,9 @@ async def evaluate_and_store(
         child_sol.eval_metrics = {
             evolve_config["fitness_key"]: 0.0,
             "correct": 0.0,
-            "failure_code": float(static_policy.get("failure_code", 16)),
+            "failure_code": _candidate_policy_failure_code(
+                policy_rejections_by_kind, static_policy
+            ),
             "acceptance_policy_passed": 0.0,
             "static_policy_rejections": float(len(policy_rejections_by_kind["static"])),
             "knowledge_policy_rejections": float(len(policy_rejections_by_kind["knowledge"])),
@@ -1064,7 +1080,7 @@ class CodeEvolveComponents:
         exploration_ensemble: LLM ensemble used during exploration phases.
         exploitation_ensemble: LLM ensemble used during exploitation phases.
         prompt_sampler: Sampler for building conversation prompts from lineages.
-        evaluator: Program evaluator with sandboxing and resource limits.
+        evaluator: Program evaluator with resource containment and resource limits.
         embedding: Optional embedding model for code vectorization.
         exploration_scheduler: Optional exploration rate scheduler.
         timeout_scheduler: Optional timeout scheduler for dynamic evaluation timeouts.
