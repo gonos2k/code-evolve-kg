@@ -55,6 +55,17 @@ checks, and dependency audit. CI also exports the locked `benchmarks` extra into
 requirements format and audits those optional benchmark dependencies without
 installing them. Update `uv.lock` together with dependency changes.
 
+## Literature Positioning
+
+This bundle should be described as a research-mature AlphaEvolve-lineage
+framework with auditable KG grounding and a scientific Fortran/WRF roadmap. It
+should not be described as a production sandbox or as a demonstrated WRF
+optimization result yet.
+
+See
+`science-codeevolve/docs/literature_positioning.md` for the current strengths,
+claim boundaries, frontier gaps, and roadmap priorities.
+
 ## Security Boundary
 
 The current evaluator uses subprocess execution, temporary working directories,

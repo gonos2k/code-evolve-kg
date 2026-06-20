@@ -1,5 +1,38 @@
 # CodeEvolve TODOs
 
+## Literature-Driven Roadmap
+
+### Demonstrate WRF single-physics capability
+
+The WRF direction is currently designed and scaffolded, not demonstrated. Ship
+one runnable `wrf_single_physics` problem with an exact WRF source commit or
+digest, one selected scheme, standalone train/holdout boundary fixtures,
+reference parity against the original WRF scheme, baseline correctness and speed
+numbers, and an accepted-candidate host-smoke procedure.
+
+### Add diversity pressure to search
+
+Embeddings can be generated, but they are not currently used for novelty,
+selection, migration, or MAP-Elites descriptors. Add novelty-aware parent
+selection, diversity-aware migration quotas, and meaningful descriptors such as
+embedding distance, AST/code-shape features, or domain metrics so quality and
+diversity are not collapsed into scalar fitness.
+
+### Improve sample efficiency
+
+The current loop is mostly one generated candidate per evaluation epoch. Add
+cheap rejection sampling for malformed or policy-invalid outputs and a reward
+bandit over model ensemble members, prompts, or mutation strategies. Report
+accepted/evaluated candidates per model call.
+
+### Add reflection and evaluator attestation
+
+Add a reflection record that converts failure diagnostics into next mutation
+hypotheses. Separately, make problem evaluators declare which gates they enforce
+such as correctness, finite-number checks, input immutability, train/holdout
+split, and semantic acceptance policy. The core should record this declaration
+and surface missing gates in metadata.
+
 ## New Features
 
 ### Multiple file support
