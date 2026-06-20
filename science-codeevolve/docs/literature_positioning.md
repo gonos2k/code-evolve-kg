@@ -227,6 +227,11 @@ Before claiming that KG improves evolution, run an ablation suite:
   and best-fitness-per-model-call reported
 
 The minimum defensible output is a table that can falsify the KG benefit claim.
+Use `scripts/make_kg_ablation_plan.py` to generate same-seed `kg_on`,
+`context_only`, and `kg_off` config variants plus a JSON manifest of the run
+commands and comparison metrics. For a clean `kg_off` variant, also remove
+model-visible KG instructions from `SYS_MSG`; the script warns about this and
+can replace the `kg_off` prompt via `--kg-off-sys-msg`.
 
 ### P2: Add Diversity Pressure
 

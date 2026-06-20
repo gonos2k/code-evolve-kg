@@ -24,7 +24,11 @@ Run same-seed, same-budget ablations with KG context/gate enabled and disabled.
 Report best fitness, median fitness, accepted-candidate rate, compile/error
 rate, and best-fitness-per-model-call. Keep declared knowledge use separate from
 verified use so the experiment can falsify, not just support, the KG benefit
-claim.
+claim. `scripts/make_kg_ablation_plan.py` now generates same-seed config
+variants and a run manifest; the remaining work is running those variants on a
+runnable problem and aggregating the results. Use `--kg-off-sys-msg` when the
+base prompt contains model-visible KG instructions, otherwise the off condition
+is not clean.
 
 ### Improve sample efficiency
 

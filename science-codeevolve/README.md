@@ -187,6 +187,11 @@ runs, it can require:
 The gate checks provenance and policy compliance. It does not prove that a
 scientific claim is true and does not prove that a model causally used a concept.
 
+For KG outcome experiments, `scripts/make_kg_ablation_plan.py` can generate
+same-seed `kg_on`, `context_only`, and `kg_off` config variants plus a JSON run
+manifest. It is a planning scaffold only; run results and aggregation are still
+required before claiming that KG improves evolutionary fitness.
+
 More detail:
 
 - [docs/okf_knowledge_usage_assessment.md](docs/okf_knowledge_usage_assessment.md)
