@@ -21,10 +21,10 @@ jobs:
         working-directory: science-codeevolve
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python 3.13
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
 
@@ -47,10 +47,10 @@ jobs:
         working-directory: science-codeevolve
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python 3.13
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
 
@@ -70,10 +70,10 @@ jobs:
         working-directory: science-codeevolve
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python 3.13
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
 
@@ -98,10 +98,10 @@ jobs:
         working-directory: science-codeevolve
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python 3.13
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
 
@@ -131,10 +131,10 @@ jobs:
         working-directory: science-codeevolve
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python 3.13
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
 
@@ -145,3 +145,40 @@ jobs:
 
       - name: Audit installed Python dependencies
         run: uv run --no-sync pip-audit --local --skip-editable
+
+  benchmark-dependency-audit:
+    name: Benchmark dependency audit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: science-codeevolve
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install audit tooling
+        run: |
+          python -m pip install "uv==${UV_VERSION}"
+          uv sync --locked --extra dev
+
+      - name: Export locked benchmark requirements
+        run: |
+          uv export \
+            --locked \
+            --extra benchmarks \
+            --no-dev \
+            --no-emit-project \
+            --format requirements.txt \
+            > benchmark-requirements.txt
+
+      - name: Audit benchmark dependencies
+        run: |
+          uv run --no-sync pip-audit \
+            --requirement benchmark-requirements.txt \
+            --disable-pip \
+            --require-hashes

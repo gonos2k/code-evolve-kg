@@ -197,7 +197,7 @@ Each island maintains:
 Schedulers are used for both exploration rate and evaluation timeout scheduling.
 
 #### Evaluator (`evaluator.py`)
-- Sandboxed program execution with resource limits (time, memory)
+- Resource-contained program execution with resource limits (time, memory)
 - Multi-threaded memory monitoring with process tree management
 - Isolated execution in temporary directories
 - Structured metrics extraction from JSON results

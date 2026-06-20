@@ -51,7 +51,9 @@ toolchain support, tests, and documentation can be reviewed as one unit.
 
 CI installs dependencies from `science-codeevolve/uv.lock` with
 `uv sync --locked --extra dev` before running format checks, tests, scoped type
-checks, and dependency audit. Update `uv.lock` together with dependency changes.
+checks, and dependency audit. CI also exports the locked `benchmarks` extra into
+requirements format and audits those optional benchmark dependencies without
+installing them. Update `uv.lock` together with dependency changes.
 
 ## Security Boundary
 

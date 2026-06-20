@@ -4,7 +4,7 @@ Guide for AI agents working on the CodeEvolve codebase.
 
 ## Project Overview
 
-CodeEvolve is an LLM-driven evolutionary algorithm framework that discovers and optimizes code solutions. Programs evolve across distributed islands via LLM-generated SEARCH/REPLACE diffs, evaluated in sandboxed environments.
+CodeEvolve is an LLM-driven evolutionary algorithm framework that discovers and optimizes code solutions. Programs evolve across distributed islands via LLM-generated SEARCH/REPLACE diffs, evaluated in resource-contained temporary environments.
 
 ## Repository Layout
 
@@ -14,7 +14,7 @@ src/codeevolve/
   runner.py         # Process management, signal handling, log daemon
   evolution.py      # Main evolutionary loop and component setup
   database.py       # Program dataclass, ProgramDatabase, MAP-Elites
-  evaluator.py      # Sandboxed execution with time/memory limits
+  evaluator.py      # Resource-contained execution with time/memory limits
   scheduler.py      # Exploration rate schedulers
   lm/               # LLM interfaces (base.py, openai.py)
   islands/          # Topology (graph.py), sync (sync.py), migration (migration.py)
@@ -50,7 +50,7 @@ The loop in `codeevolve_loop()` delegates to focused helper functions:
 1. `select_parents()` — selection phase
 2. `run_meta_prompting()` — optional prompt evolution
 3. `generate_solution()` — LLM-driven code generation
-4. `evaluate_and_store()` — sandboxed evaluation
+4. `evaluate_and_store()` — resource-contained evaluation
 5. `handle_migration()` — inter-island exchange
 
 Component setup lives in `setup_codeevolve_components()` and `_create_*` factory functions.
